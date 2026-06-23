@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Altos Distributor</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body id="page-admin">
+    <header class="site-header admin-header">
+        <div class="site-branding">
+            <div class="brand-logo">ALTOS</div>
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p>Buy your own products from Altos</p>
+            </div>
+        </div>
+        <nav class="main-nav">
+            <a href="index.html" class="nav-link">Shop</a>
+            <a href="cart.html" class="nav-link">Cart <span id="cart-badge">0</span></a>
+            <a href="admin.html" class="nav-link active">Admin</a>
+        </nav>
+    </header>
+
+    <main class="page-content admin-content">
+        <section class="admin-panel" id="admin-panel">
+            <div id="login-card" class="login-card">
+                <h2>Admin Login</h2>
+                <form id="admin-login-form">
+                    <label for="admin-username">Username</label>
+                    <input id="admin-username" name="username" type="text" placeholder="NIROTYAY" required />
+
+                    <label for="admin-password">Password</label>
+                    <input id="admin-password" name="password" type="password" placeholder="NALTOS" required />
+
+                    <button type="submit" class="button button-primary">Login</button>
+                </form>
+            </div>
+
+            <div id="admin-content" class="hidden">
+                <div class="admin-tabs">
+                    <button id="tab-orders" class="button button-primary">Orders</button>
+                    <button id="tab-products" class="button button-secondary">Products</button>
+                    <button id="logout-button" class="button button-secondary">Logout</button>
+                </div>
+
+                <div id="orders-panel">
+                    <div class="orders-header">
+                        <h2>Recent Orders</h2>
+                    </div>
+                    <div id="orders-list"></div>
+                </div>
+
+                <div id="products-panel" class="hidden">
+                    <div class="orders-header">
+                        <h2>Product Management</h2>
+                        <button id="new-product-button" class="button button-primary">New Product</button>
+                    </div>
+                    <div id="product-list"></div>
+                    <div id="product-form" class="product-form hidden">
+                        <div class="product-form-container">
+                            <h3 id="product-form-title">Add Product</h3>
+                            <form id="product-edit-form">
+                                <label for="product-id">Product Code</label>
+                                <input id="product-id" name="id" type="text" required />
+
+                                <label for="product-name">Name</label>
+                                <input id="product-name" name="name" type="text" required />
+
+                                <label for="product-category">Category</label>
+                                <input id="product-category" name="category" type="text" required />
+
+                                <label for="product-unit">Unit</label>
+                                <input id="product-unit" name="unit" type="text" required />
+
+                                <label for="product-mrp">MRP</label>
+                                <input id="product-mrp" name="mrp" type="number" step="0.01" required />
+
+
+                                <label for="product-description">Description</label>
+                                <textarea id="product-description" name="description" rows="4"></textarea>
+
+                                <div class="admin-form-actions">
+                                    <button type="submit" class="button button-primary">Save product</button>
+                                    <button id="cancel-product" type="button" class="button button-secondary">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="order-form-modal" class="product-form hidden">
+                        <div class="product-form-container">
+                            <h3>Edit Order</h3>
+                            <form id="order-edit-form">
+                                <input type="hidden" name="id" />
+
+                                <label for="order-name">Customer Name</label>
+                                <input id="order-name" name="customerName" type="text" required />
+
+                                <label for="order-email">Customer Email</label>
+                                <input id="order-email" name="customerEmail" type="email" required />
+
+                                <label for="order-phone">WhatsApp Phone</label>
+                                <input id="order-phone" name="customerPhone" type="tel" required />
+
+                                <label for="order-address">Delivery Address</label>
+                                <textarea id="order-address" name="customerAddress" rows="3" required></textarea>
+
+                                <label for="order-method">Payment Method</label>
+                                <select id="order-method" name="paymentMethod">
+                                    <option value="upi">UPI</option>
+                                    <option value="cod">Cash on Delivery (COD)</option>
+                                </select>
+
+                                <label for="order-transaction">UPI Transaction ID / UTR</label>
+                                <input id="order-transaction" name="transactionId" type="text" placeholder="12-digit transaction ID" />
+
+                                <label for="order-total">Total Amount (₹)</label>
+                                <input id="order-total" name="total" type="number" step="0.01" required />
+
+                                <label for="order-status">Order Status</label>
+                                <select id="order-status" name="status">
+                                    <option value="pending">Pending</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+
+                                <div class="admin-form-actions">
+                                    <button type="submit" class="button button-primary">Save changes</button>
+                                    <button id="cancel-order-edit" type="button" class="button button-secondary">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Want to buy Altos products? Add products to cart and checkout now.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
