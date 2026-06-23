@@ -1,12 +1,11 @@
 # Altos Distributor Website
 
-A simple product website for selling Altos products with:
+A simple product website and minimal backend for selling Altos products.
 
-- responsive product catalog
-- search and category filter
-- add to cart and buy now flow
-- checkout form with payment placeholder
-- admin login page with order list
+- Responsive product catalog
+- Search and category filtering
+- Add-to-cart and checkout flow
+- Simple admin dashboard for orders
 
 ## Files
 
@@ -17,19 +16,57 @@ A simple product website for selling Altos products with:
 - `styles.css` — site design and layout
 - `products.js` — product data
 - `app.js` — cart, checkout, and admin logic
+- `server.js` — minimal Express server and API
+- `database.js` — local SQLite persistence helpers
 
-## How to run
+## Prerequisites
 
-1. Open the `d:\ALTOS` folder in VS Code.
-2. Open `index.html` in your browser.
-3. Use the product catalog to add items to cart or buy now.
-4. Complete checkout to save an order.
-5. Visit `admin.html` and login with:
-   - username: `admin`
-   - password: `admin123`
+- Node.js 14+ and npm
+
+## Install
+
+1. Open the `d:\ALTOS` folder in VS Code or a terminal.
+2. Install dependencies:
+
+```powershell
+npm install
+```
+
+## Run
+
+- Start the server:
+
+```powershell
+npm start
+```
+
+- Development with auto-reload:
+
+```powershell
+npm run dev
+```
+
+Then open `http://localhost:3000` (or the port shown by the server) in your browser.
+
+## Admin
+
+Visit `admin.html` and login with the demo credentials:
+
+- username: `admin`
+- password: `admin123`
+
+## CI
+
+This repository includes a basic GitHub Actions workflow that installs dependencies and runs the `test` script if present.
+
+## Release
+
+A lightweight release/tagging strategy is used. The repository contains an annotated tag pushed as `v0.1.0`.
 
 ## Notes
 
-- This is a demo implementation using browser `localStorage`.
-- For a real business website, connect to a backend and payment gateway.
-- You can extend `products.js` with your full Altos product catalog.
+- This project stores demo data locally (SQLite and browser `localStorage`). For production use, add authentication, secure payment integration, and a hosted DB.
+
+## License
+
+See the repository license or add one if you need explicit licensing.
