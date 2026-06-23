@@ -393,11 +393,13 @@ function clearAdminToken() {
 
 async function fetchAdminOrders() {
     const token = getAdminToken();
+    if (!token) throw new Error("Not authenticated as admin. Please log in.");
     const response = await fetch("/api/orders", {
         headers: { Authorization: `Bearer ${token}` }
     });
     if (!response.ok) {
-        throw new Error("Unable to load orders.");
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || "Unable to load orders.");
     }
     return await response.json();
 }
@@ -502,6 +504,7 @@ function closeOrderForm() {
 async function deleteOrder(orderId) {
     if (!confirm("Are you sure you want to delete this order?")) return;
     const token = getAdminToken();
+    if (!token) { alert('Admin not logged in. Please login to delete orders.'); return; }
     try {
         const response = await fetch(`/api/orders/${orderId}`, {
             method: "DELETE",
@@ -521,6 +524,7 @@ async function handleOrderSubmit(event) {
     const form = event.target;
     const orderId = form.elements.id.value;
     const token = getAdminToken();
+    if (!token) { alert('Admin not logged in. Please login to save changes.'); return; }
     
     const data = {
         customerName: form.elements.customerName.value.trim(),
@@ -542,7 +546,7 @@ async function handleOrderSubmit(event) {
             },
             body: JSON.stringify(data)
         });
-        const payload = await response.json();
+        const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
             throw new Error(payload.error || "Failed to update order.");
         }
