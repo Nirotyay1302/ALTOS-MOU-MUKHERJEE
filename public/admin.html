@@ -88,51 +88,7 @@
                         </div>
                     </div>
 
-                    <div id="order-form-modal" class="product-form hidden">
-                        <div class="product-form-container">
-                            <h3>Edit Order</h3>
-                            <form id="order-edit-form">
-                                <input type="hidden" name="id" />
-
-                                <label for="order-name">Customer Name</label>
-                                <input id="order-name" name="customerName" type="text" required />
-
-                                <label for="order-email">Customer Email</label>
-                                <input id="order-email" name="customerEmail" type="email" required />
-
-                                <label for="order-phone">WhatsApp Phone</label>
-                                <input id="order-phone" name="customerPhone" type="tel" required />
-
-                                <label for="order-address">Delivery Address</label>
-                                <textarea id="order-address" name="customerAddress" rows="3" required></textarea>
-
-                                <label for="order-method">Payment Method</label>
-                                <select id="order-method" name="paymentMethod">
-                                    <option value="upi">UPI</option>
-                                    <option value="cod">Cash on Delivery (COD)</option>
-                                </select>
-
-                                <label for="order-transaction">UPI Transaction ID / UTR</label>
-                                <input id="order-transaction" name="transactionId" type="text" placeholder="12-digit transaction ID" />
-
-                                <label for="order-total">Total Amount (₹)</label>
-                                <input id="order-total" name="total" type="number" step="0.01" required />
-
-                                <label for="order-status">Order Status</label>
-                                <select id="order-status" name="status">
-                                    <option value="pending">Pending</option>
-                                    <option value="paid">Paid</option>
-                                    <option value="delivered">Delivered</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-
-                                <div class="admin-form-actions">
-                                    <button type="submit" class="button button-primary">Save changes</button>
-                                    <button id="cancel-order-edit" type="button" class="button button-secondary">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                    <!-- Order edit UI removed -->
                 </div>
             </div>
         </section>

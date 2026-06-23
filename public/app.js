@@ -434,7 +434,6 @@ function renderOrders(listElement, orders) {
             <ul>${itemsHtml}</ul>
             <div class="order-card-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem;">
                 <button class="button button-primary-light" onclick="sendAdminWhatsApp('${order.id}')">Send WhatsApp</button>
-                <button class="button button-secondary" onclick="editOrder('${order.id}')">Edit</button>
                 <button class="button button-danger" onclick="deleteOrder('${order.id}')">Delete</button>
             </div>
         </div>`;
@@ -477,29 +476,7 @@ function sendAdminWhatsApp(orderId) {
     window.open(waLink, '_blank');
 }
 
-function editOrder(orderId) {
-    const order = adminOrders.find(o => o.id === orderId);
-    if (!order) return;
-
-    const modal = document.getElementById("order-form-modal");
-    const form = document.getElementById("order-edit-form");
-    if (!modal || !form) return;
-
-    modal.classList.remove("hidden");
-    form.elements.id.value = order.id;
-    form.elements.customerName.value = order.customerName || "";
-    form.elements.customerEmail.value = order.customerEmail || "";
-    form.elements.customerPhone.value = order.customerPhone || "";
-    form.elements.customerAddress.value = order.customerAddress || "";
-    form.elements.paymentMethod.value = order.paymentMethod || "upi";
-    form.elements.transactionId.value = order.transactionId || "";
-    form.elements.total.value = order.total || "";
-    form.elements.status.value = order.status || "pending";
-}
-
-function closeOrderForm() {
-    document.getElementById("order-form-modal")?.classList.add("hidden");
-}
+// Edit functionality removed: order editing UI and handlers were deleted.
 
 async function deleteOrder(orderId) {
     if (!confirm("Are you sure you want to delete this order?")) return;
@@ -519,43 +496,7 @@ async function deleteOrder(orderId) {
     }
 }
 
-async function handleOrderSubmit(event) {
-    event.preventDefault();
-    const form = event.target;
-    const orderId = form.elements.id.value;
-    const token = getAdminToken();
-    if (!token) { alert('Admin not logged in. Please login to save changes.'); return; }
-    
-    const data = {
-        customerName: form.elements.customerName.value.trim(),
-        customerEmail: form.elements.customerEmail.value.trim(),
-        customerPhone: form.elements.customerPhone.value.trim(),
-        customerAddress: form.elements.customerAddress.value.trim(),
-        paymentMethod: form.elements.paymentMethod.value,
-        transactionId: form.elements.transactionId.value.trim() || null,
-        total: parseFloat(form.elements.total.value) || 0,
-        status: form.elements.status.value
-    };
-
-    try {
-        const response = await fetch(`/api/orders/${orderId}`, {
-            method: "PUT",
-            headers: { 
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}` 
-            },
-            body: JSON.stringify(data)
-        });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) {
-            throw new Error(payload.error || "Failed to update order.");
-        }
-        closeOrderForm();
-        renderAdminPage();
-    } catch (error) {
-        alert(error.message);
-    }
-}
+// Order edit submission handler removed along with edit UI.
 
 function renderProductList(listElement, productsData) {
     if (!productsData.length) {
@@ -753,8 +694,7 @@ async function renderAdminPage() {
     document.getElementById("cancel-product")?.addEventListener("click", closeProductForm);
     document.getElementById("product-edit-form")?.addEventListener("submit", handleProductSubmit);
     
-    document.getElementById("cancel-order-edit")?.addEventListener("click", closeOrderForm);
-    document.getElementById("order-edit-form")?.addEventListener("submit", handleOrderSubmit);
+    // Order edit UI removed; no event listeners bound for order editing.
 
     try {
         adminOrders = await fetchAdminOrders();
