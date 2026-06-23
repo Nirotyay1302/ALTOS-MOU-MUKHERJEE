@@ -484,15 +484,15 @@ function editOrder(orderId) {
     if (!modal || !form) return;
 
     modal.classList.remove("hidden");
-    form.id.value = order.id;
-    form.customerName.value = order.customerName || "";
-    form.customerEmail.value = order.customerEmail || "";
-    form.customerPhone.value = order.customerPhone || "";
-    form.customerAddress.value = order.customerAddress || "";
-    form.paymentMethod.value = order.paymentMethod || "upi";
-    form.transactionId.value = order.transactionId || "";
-    form.total.value = order.total || "";
-    form.status.value = order.status || "pending";
+    form.elements.id.value = order.id;
+    form.elements.customerName.value = order.customerName || "";
+    form.elements.customerEmail.value = order.customerEmail || "";
+    form.elements.customerPhone.value = order.customerPhone || "";
+    form.elements.customerAddress.value = order.customerAddress || "";
+    form.elements.paymentMethod.value = order.paymentMethod || "upi";
+    form.elements.transactionId.value = order.transactionId || "";
+    form.elements.total.value = order.total || "";
+    form.elements.status.value = order.status || "pending";
 }
 
 function closeOrderForm() {
@@ -519,18 +519,18 @@ async function deleteOrder(orderId) {
 async function handleOrderSubmit(event) {
     event.preventDefault();
     const form = event.target;
-    const orderId = form.id.value;
+    const orderId = form.elements.id.value;
     const token = getAdminToken();
     
     const data = {
-        customerName: form.customerName.value.trim(),
-        customerEmail: form.customerEmail.value.trim(),
-        customerPhone: form.customerPhone.value.trim(),
-        customerAddress: form.customerAddress.value.trim(),
-        paymentMethod: form.paymentMethod.value,
-        transactionId: form.transactionId.value.trim() || null,
-        total: parseFloat(form.total.value) || 0,
-        status: form.status.value
+        customerName: form.elements.customerName.value.trim(),
+        customerEmail: form.elements.customerEmail.value.trim(),
+        customerPhone: form.elements.customerPhone.value.trim(),
+        customerAddress: form.elements.customerAddress.value.trim(),
+        paymentMethod: form.elements.paymentMethod.value,
+        transactionId: form.elements.transactionId.value.trim() || null,
+        total: parseFloat(form.elements.total.value) || 0,
+        status: form.elements.status.value
     };
 
     try {
@@ -608,17 +608,17 @@ function openProductForm(product = null) {
 
     formArea.classList.remove("hidden");
     title.textContent = product ? "Edit Product" : "Add Product";
-    formElement.id.value = product?.id || "";
-    formElement.name.value = product?.name || "";
-    formElement.category.value = product?.category || "";
-    formElement.unit.value = product?.unit || "";
-    formElement.mrp.value = product?.mrp || "";
-    formElement.description.value = product?.description || "";
+    formElement.elements.id.value = product?.id || "";
+    formElement.elements.name.value = product?.name || "";
+    formElement.elements.category.value = product?.category || "";
+    formElement.elements.unit.value = product?.unit || "";
+    formElement.elements.mrp.value = product?.mrp || "";
+    formElement.elements.description.value = product?.description || "";
 
     if (product) {
-        formElement.id.setAttribute("readonly", "readonly");
+        formElement.elements.id.setAttribute("readonly", "readonly");
     } else {
-        formElement.id.removeAttribute("readonly");
+        formElement.elements.id.removeAttribute("readonly");
     }
 }
 
@@ -659,16 +659,16 @@ async function handleProductSubmit(event) {
     event.preventDefault();
     const form = event.target;
     const data = {
-        id: form.id.value.trim(),
-        name: form.name.value.trim(),
-        category: form.category.value.trim(),
-        unit: form.unit.value.trim(),
-        price: parseFloat(form.mrp.value) || 0,
-        mrp: parseFloat(form.mrp.value) || 0,
+        id: form.elements.id.value.trim(),
+        name: form.elements.name.value.trim(),
+        category: form.elements.category.value.trim(),
+        unit: form.elements.unit.value.trim(),
+        price: parseFloat(form.elements.mrp.value) || 0,
+        mrp: parseFloat(form.elements.mrp.value) || 0,
         bv: 0,
         pv: 0,
         image_url: "",
-        description: form.description.value.trim()
+        description: form.elements.description.value.trim()
     };
 
     if (!data.id || !data.name || !data.category || !data.unit || !data.mrp) {
@@ -677,7 +677,7 @@ async function handleProductSubmit(event) {
     }
 
     const token = getAdminToken();
-    const isEdit = form.id.hasAttribute("readonly");
+    const isEdit = form.elements.id.hasAttribute("readonly");
     const url = isEdit ? `/api/products/${data.id}` : "/api/products";
     const method = isEdit ? "PUT" : "POST";
 
