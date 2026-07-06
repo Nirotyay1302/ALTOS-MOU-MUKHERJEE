@@ -292,7 +292,7 @@ function renderCheckoutPage() {
                 if (upiRadio) upiRadio.checked = true;
                 updatePaymentUI("upi", true);
             }
-        } else if (selectedMethod === "razorpay") {
+        } else if (selectedMethod === "payu") {
             if (codFeeRow) codFeeRow.style.display = "none";
             if (codSection) codSection.style.display = "none";
             if (upiSection) upiSection.style.display = "none";
@@ -370,23 +370,23 @@ async function submitCheckout(items, baseTotal) {
             throw new Error(payload.error || "Order creation failed.");
         }
 
-        if (method === "razorpay") {
+        if (method === "payu") {
             if (payload.mockPayment) {
                 // Mock Payment simulation for development
-                if (confirm(`[MOCK MODE] Razorpay Payment Gateway: Complete payment of ₹${finalTotal.toFixed(2)}?`)) {
-                    const verifyResponse = await fetch("/api/payments/verify-razorpay", {
+                if (confirm(`[MOCK MODE] PayU Payment Gateway: Complete payment of ₹${finalTotal.toFixed(2)}?`)) {
+                    const verifyResponse = await fetch("/api/payments/verify-payu", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             orderId: payload.orderId,
-                            razorpayPaymentId: "pay_mock_" + Date.now(),
-                            razorpayOrderId: "order_mock_" + Date.now(),
-                            razorpaySignature: "mock_signature"
+                            txnid: payload.orderId,
+                            status: "success",
+                            mock: true
                         })
                     });
                     const verifyPayload = await verifyResponse.json();
                     if (verifyResponse.ok) {
-                        finalizeOrder(payload.orderId, true, phone, items, finalTotal, "razorpay", "MOCK_PAYMENT");
+                        finalizeOrder(payload.orderId, true, phone, items, finalTotal, "payu", "MOCK_PAYU_PAYMENT");
                     } else {
                         alert(verifyPayload.error || "Mock payment verification failed.");
                     }
@@ -394,51 +394,23 @@ async function submitCheckout(items, baseTotal) {
                     alert("Payment cancelled.");
                 }
             } else {
-                // Real Razorpay integration
-                const options = {
-                    key: payload.keyId,
-                    amount: payload.amount,
-                    currency: "INR",
-                    name: "Altos Distributor",
-                    description: `Order ID: ${payload.orderId}`,
-                    order_id: payload.razorpayOrderId,
-                    handler: async function (rzpResponse) {
-                        try {
-                            const verifyResponse = await fetch("/api/payments/verify-razorpay", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    orderId: payload.orderId,
-                                    razorpayPaymentId: rzpResponse.razorpay_payment_id,
-                                    razorpayOrderId: rzpResponse.razorpay_order_id,
-                                    razorpaySignature: rzpResponse.razorpay_signature
-                                })
-                            });
-                            const verifyPayload = await verifyResponse.json();
-                            if (!verifyResponse.ok) {
-                                throw new Error(verifyPayload.error || "Signature verification failed.");
-                            }
-                            finalizeOrder(payload.orderId, true, phone, items, finalTotal, "razorpay", rzpResponse.razorpay_payment_id);
-                        } catch (err) {
-                            alert("Payment verification failed: " + err.message);
-                        }
-                    },
-                    prefill: {
-                        name: name,
-                        email: email,
-                        contact: phone
-                    },
-                    theme: {
-                        color: "#d6001c"
-                    },
-                    modal: {
-                        ondismiss: function () {
-                            alert("Payment overlay closed. Order is pending payment.");
-                        }
+                // Real PayU Hosted Checkout redirection
+                const form = document.createElement("form");
+                form.action = payload.payuForm.action;
+                form.method = "POST";
+
+                for (const key in payload.payuForm) {
+                    if (key !== "action") {
+                        const input = document.createElement("input");
+                        input.type = "hidden";
+                        input.name = key;
+                        input.value = payload.payuForm[key];
+                        form.appendChild(input);
                     }
-                };
-                const rzp = new Razorpay(options);
-                rzp.open();
+                }
+
+                document.body.appendChild(form);
+                form.submit();
             }
             return;
         }
@@ -507,7 +479,7 @@ function renderOrders(listElement, orders) {
             <p><strong>Email:</strong> ${order.customerEmail}</p>
             <p><strong>Phone:</strong> ${order.customerPhone}</p>
             <p><strong>Address:</strong> ${order.customerAddress}</p>
-            <p><strong>Payment:</strong> ${order.paymentMethod === 'upi' ? `UPI (Transaction ID: ${order.transactionId || 'N/A'})` : (order.paymentMethod === 'razorpay' ? `Razorpay (Payment ID: ${order.transactionId || 'N/A'})` : 'Cash on Delivery (COD)')}</p>
+            <p><strong>Payment:</strong> ${order.paymentMethod === 'upi' ? `UPI (Transaction ID: ${order.transactionId || 'N/A'})` : (order.paymentMethod === 'payu' ? `PayU (Payment ID: ${order.transactionId || 'N/A'})` : 'Cash on Delivery (COD)')}</p>
             <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
             <p><strong>Status:</strong> ${order.status}</p>
             <p><strong>Total:</strong> ₹${order.total.toFixed(2)}</p>
@@ -899,6 +871,20 @@ function showLandingPopup() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('payment_success')) {
+        const orderId = urlParams.get('orderId');
+        clearBuyNow();
+        saveCart([]);
+        updateCartBadge();
+        alert(`Order placed successfully! Order ID: ${orderId}`);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (urlParams.has('payment_failed')) {
+        const orderId = urlParams.get('orderId');
+        alert(`Payment failed or was cancelled for Order ID: ${orderId}. Please try again.`);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     updateCartBadge();
     injectWhatsAppButton();
     if (document.body.id === "page-home") {

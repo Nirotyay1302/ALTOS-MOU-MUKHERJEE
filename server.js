@@ -5,17 +5,10 @@ const cors = require("cors");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY || "");
 const { initialize, run, get, all } = require("./database");
 
-// Razorpay Initialization
-const Razorpay = require("razorpay");
-const razorpayKeyId = process.env.RAZORPAY_KEY_ID || "";
-const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || "";
-let razorpayInstance = null;
-if (razorpayKeyId && razorpayKeySecret) {
-  razorpayInstance = new Razorpay({
-    key_id: razorpayKeyId,
-    key_secret: razorpayKeySecret
-  });
-}
+// PayU Initialization
+const payuKey = process.env.PAYU_KEY || "";
+const payuSalt = process.env.PAYU_SALT || "";
+const payuEnv = process.env.PAYU_ENV || "test";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -27,6 +20,7 @@ initialize();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
 function requireAdminAuth(req, res, next) {
@@ -159,24 +153,49 @@ app.post("/api/orders", async (req, res) => {
       return res.json({ orderId, clientSecret: paymentIntent.client_secret, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY });
     }
 
-    if (paymentMethod === "razorpay") {
-      if (razorpayInstance) {
-        const razorpayOrder = await razorpayInstance.orders.create({
-          amount: Math.round(total * 100),
-          currency: "INR",
-          receipt: orderId
-        });
+    if (paymentMethod === "payu") {
+      if (payuKey && payuSalt) {
+        const crypto = require("crypto");
+        const amountStr = Number(total).toFixed(2);
+        const productinfo = `Order ${orderId}`;
+        const firstname = customerName.split(" ")[0].replace(/[^a-zA-Z0-9]/g, "") || "Customer";
+        const email = customerEmail;
+
+        const host = req.get('host');
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const origin = `${protocol}://${host}`;
+        const surl = `${origin}/api/payments/payu-callback`;
+        const furl = `${origin}/api/payments/payu-callback`;
+
+        const hashString = `${payuKey}|${orderId}|${amountStr}|${productinfo}|${firstname}|${email}|||||||||||${payuSalt}`;
+        const hash = crypto.createHash("sha512").update(hashString).digest("hex");
+
+        const action = (payuEnv === 'prod' || payuEnv === 'production' || payuEnv === 'secure')
+          ? 'https://secure.payu.in/_payment'
+          : 'https://test.payu.in/_payment';
+
         return res.json({
           orderId,
-          razorpayOrderId: razorpayOrder.id,
-          keyId: razorpayKeyId,
-          amount: Math.round(total * 100)
+          payuForm: {
+            key: payuKey,
+            txnid: orderId,
+            amount: amountStr,
+            productinfo,
+            firstname,
+            email,
+            phone: customerPhone,
+            surl,
+            furl,
+            hash,
+            service_provider: "payu_paisa",
+            action
+          }
         });
       } else {
         return res.json({
           orderId,
           mockPayment: true,
-          amount: Math.round(total * 100)
+          amount: total
         });
       }
     }
@@ -239,12 +258,12 @@ app.post("/api/payments/confirm", async (req, res) => {
   }
 });
 
-app.post("/api/payments/verify-razorpay", async (req, res) => {
-  const { orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
+app.post("/api/payments/verify-payu", async (req, res) => {
+  const { orderId, txnid, status, mock } = req.body;
 
-  if (!razorpayInstance) {
+  if (!payuKey || !payuSalt || mock) {
     try {
-      await run("UPDATE orders SET status = ?, transactionId = ? WHERE id = ?", ["paid", razorpayPaymentId || "MOCK_PAYMENT", orderId]);
+      await run("UPDATE orders SET status = ?, transactionId = ? WHERE id = ?", ["paid", "MOCK_PAYU_PAYMENT", orderId || txnid]);
       return res.json({ success: true, mock: true });
     } catch (err) {
       console.error(err);
@@ -252,23 +271,48 @@ app.post("/api/payments/verify-razorpay", async (req, res) => {
     }
   }
 
+  res.status(400).json({ error: "Real PayU payments must be processed via secure callback." });
+});
+
+app.post("/api/payments/payu-callback", async (req, res) => {
+  const { key, txnid, amount, productinfo, firstname, email, status, hash, mihpayid, additional_charges } = req.body;
+
+  if (!payuKey || !payuSalt) {
+    return res.redirect(`/index.html?payment_failed=true&orderId=${txnid || "unknown"}`);
+  }
+
   try {
     const crypto = require("crypto");
-    const text = razorpayOrderId + "|" + razorpayPaymentId;
-    const generated_signature = crypto
-      .createHmac("sha256", razorpayKeySecret)
-      .update(text)
-      .digest("hex");
+    const udf5 = req.body.udf5 || "";
+    const udf4 = req.body.udf4 || "";
+    const udf3 = req.body.udf3 || "";
+    const udf2 = req.body.udf2 || "";
+    const udf1 = req.body.udf1 || "";
 
-    if (generated_signature === razorpaySignature) {
-      await run("UPDATE orders SET status = ?, transactionId = ? WHERE id = ?", ["paid", razorpayPaymentId, orderId]);
-      res.json({ success: true });
+    let verifyString = "";
+    if (additional_charges) {
+      verifyString = `${additional_charges}|${payuSalt}|${status}||||||${udf5}|${udf4}|${udf3}|${udf2}|${udf1}|${email}|${firstname}|${productinfo}|${amount}|${txnid}|${key}`;
     } else {
-      res.status(400).json({ error: "Invalid payment signature verification failed." });
+      verifyString = `${payuSalt}|${status}||||||${udf5}|${udf4}|${udf3}|${udf2}|${udf1}|${email}|${firstname}|${productinfo}|${amount}|${txnid}|${key}`;
+    }
+
+    const generatedHash = crypto.createHash("sha512").update(verifyString).digest("hex");
+
+    if (generatedHash === hash) {
+      if (status === "success") {
+        await run("UPDATE orders SET status = ?, transactionId = ? WHERE id = ?", ["paid", mihpayid || txnid, txnid]);
+        res.redirect(`/index.html?payment_success=true&orderId=${txnid}`);
+      } else {
+        await run("UPDATE orders SET status = ?, transactionId = ? WHERE id = ?", ["failed", mihpayid || txnid, txnid]);
+        res.redirect(`/index.html?payment_failed=true&orderId=${txnid}`);
+      }
+    } else {
+      console.error("PayU signature validation failed. Expected:", generatedHash, "Received:", hash);
+      res.status(400).send("Invalid payment signature verification failed.");
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Unable to verify signature." });
+    res.status(500).send("Unable to verify payment signature.");
   }
 });
 
