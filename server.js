@@ -5,6 +5,18 @@ const cors = require("cors");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY || "");
 const { initialize, run, get, all } = require("./database");
 
+// Razorpay Initialization
+const Razorpay = require("razorpay");
+const razorpayKeyId = process.env.RAZORPAY_KEY_ID || "";
+const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || "";
+let razorpayInstance = null;
+if (razorpayKeyId && razorpayKeySecret) {
+  razorpayInstance = new Razorpay({
+    key_id: razorpayKeyId,
+    key_secret: razorpayKeySecret
+  });
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
 const adminUsername = process.env.ADMIN_USERNAME || "NIROTYAY";
@@ -50,7 +62,7 @@ app.post("/api/products", requireAdminAuth, async (req, res) => {
     await run(
       `INSERT OR REPLACE INTO products (id, category, name, unit, price, mrp, bv, pv, description, image_url)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, category, name, unit, mrp || price || 0, mrp || price || 0, 0, 0, description || "", image_url || ""]
+      [id, category, name, unit, mrp || price || 0, mrp || price || 0, bv || 0, pv || 0, description || "", image_url || ""]
     );
     res.status(201).json({ message: "Product saved." });
   } catch (error) {
@@ -65,7 +77,7 @@ app.put("/api/products/:id", requireAdminAuth, async (req, res) => {
   try {
     await run(
       `UPDATE products SET category = ?, name = ?, unit = ?, price = ?, mrp = ?, bv = ?, pv = ?, description = ?, image_url = ? WHERE id = ?`,
-      [category, name, unit, mrp || price || 0, mrp || price || 0, 0, 0, description || "", image_url || "", id]
+      [category, name, unit, mrp || price || 0, mrp || price || 0, bv || 0, pv || 0, description || "", image_url || "", id]
     );
     res.json({ message: "Product updated." });
   } catch (error) {
@@ -147,6 +159,28 @@ app.post("/api/orders", async (req, res) => {
       return res.json({ orderId, clientSecret: paymentIntent.client_secret, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY });
     }
 
+    if (paymentMethod === "razorpay") {
+      if (razorpayInstance) {
+        const razorpayOrder = await razorpayInstance.orders.create({
+          amount: Math.round(total * 100),
+          currency: "INR",
+          receipt: orderId
+        });
+        return res.json({
+          orderId,
+          razorpayOrderId: razorpayOrder.id,
+          keyId: razorpayKeyId,
+          amount: Math.round(total * 100)
+        });
+      } else {
+        return res.json({
+          orderId,
+          mockPayment: true,
+          amount: Math.round(total * 100)
+        });
+      }
+    }
+
     res.json({ orderId, success: true });
   } catch (error) {
     console.error(error);
@@ -202,6 +236,39 @@ app.post("/api/payments/confirm", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Unable to confirm payment." });
+  }
+});
+
+app.post("/api/payments/verify-razorpay", async (req, res) => {
+  const { orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
+
+  if (!razorpayInstance) {
+    try {
+      await run("UPDATE orders SET status = ?, transactionId = ? WHERE id = ?", ["paid", razorpayPaymentId || "MOCK_PAYMENT", orderId]);
+      return res.json({ success: true, mock: true });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Unable to confirm mock payment." });
+    }
+  }
+
+  try {
+    const crypto = require("crypto");
+    const text = razorpayOrderId + "|" + razorpayPaymentId;
+    const generated_signature = crypto
+      .createHmac("sha256", razorpayKeySecret)
+      .update(text)
+      .digest("hex");
+
+    if (generated_signature === razorpaySignature) {
+      await run("UPDATE orders SET status = ?, transactionId = ? WHERE id = ?", ["paid", razorpayPaymentId, orderId]);
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ error: "Invalid payment signature verification failed." });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Unable to verify signature." });
   }
 });
 

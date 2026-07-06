@@ -17,6 +17,7 @@
         </div>
         <nav class="main-nav">
             <a href="index.html" class="nav-link">Shop</a>
+            <a href="articles.html" class="nav-link">Articles</a>
             <a href="cart.html" class="nav-link">Cart <span id="cart-badge">0</span></a>
             <a href="admin.html" class="nav-link active">Admin</a>
         </nav>
@@ -48,6 +49,27 @@
                     <div class="orders-header">
                         <h2>Recent Orders</h2>
                     </div>
+
+                    <!-- Revenue and Orders Summary Cards -->
+                    <div class="admin-summary-cards" id="admin-summary-cards">
+                        <div class="summary-card">
+                            <span class="card-label">Total Orders</span>
+                            <strong class="card-value" id="summary-total-orders">0</strong>
+                        </div>
+                        <div class="summary-card">
+                            <span class="card-label">Total Revenue</span>
+                            <strong class="card-value" id="summary-total-revenue">₹0.00</strong>
+                        </div>
+                        <div class="summary-card">
+                            <span class="card-label">UPI Revenue</span>
+                            <strong class="card-value" id="summary-upi-revenue">₹0.00</strong>
+                        </div>
+                        <div class="summary-card">
+                            <span class="card-label">COD Revenue</span>
+                            <strong class="card-value" id="summary-cod-revenue">₹0.00</strong>
+                        </div>
+                    </div>
+
                     <div id="orders-list"></div>
                 </div>
 

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Checkout - Altos Distributor</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body id="page-checkout">
     <header class="site-header">
@@ -17,6 +18,7 @@
         </div>
         <nav class="main-nav">
             <a href="index.html" class="nav-link">Shop</a>
+            <a href="articles.html" class="nav-link">Articles</a>
             <a href="cart.html" class="nav-link">Cart <span id="cart-badge">0</span></a>
             <a href="admin.html" class="nav-link">Admin</a>
         </nav>
@@ -46,6 +48,10 @@
                             UPI (Pay via QR / UPI ID)
                         </label>
                         <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="razorpay" />
+                            Pay Online (Cards, UPI, Netbanking - Razorpay)
+                        </label>
+                        <label class="payment-option">
                             <input type="radio" name="paymentMethod" value="cod" />
                             Cash on Delivery (COD)
                         </label>
@@ -67,7 +73,7 @@
                             </div>
                         </div>
                         <div id="cod-payment-section" class="cod-payment-section hidden" style="display: none;">
-                            <p class="cod-instruction" style="color: var(--color-text-light);">Pay in cash upon delivery. Note that an extra <strong>₹20.00 convenience fee</strong> will be added to your order total.</p>
+                            <p class="cod-instruction" style="color: var(--color-text-light);">Pay in cash upon delivery. Note that an extra <strong>₹30.00 convenience fee</strong> will be added to your order total.</p>
                         </div>
                     </div>
                     <button type="submit" class="button button-primary">Place order</button>
@@ -81,7 +87,7 @@
                     <div class="summary-details">
                         <div class="summary-row" id="cod-fee-row" style="display: none; justify-content: space-between; margin-bottom: 0.5rem; color: var(--color-text-light);">
                             <span>Convenience Fee (COD)</span>
-                            <strong>₹20.00</strong>
+                            <strong>₹30.00</strong>
                         </div>
                     </div>
                     <div class="summary-total">

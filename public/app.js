@@ -277,13 +277,13 @@ function renderCheckoutPage() {
         if (selectedMethod === "cod") {
             let confirmed = true;
             if (!skipConfirm) {
-                confirmed = confirm("Are you sure you want to select Cash on Delivery? There is an extra ₹20.00 convenience fee for COD orders.");
+                confirmed = confirm("Are you sure you want to select Cash on Delivery? There is an extra ₹30.00 convenience fee for COD orders.");
             }
             if (confirmed) {
                 if (codFeeRow) codFeeRow.style.display = "flex";
                 if (codSection) codSection.style.display = "block";
                 if (upiSection) upiSection.style.display = "none";
-                totalNode.textContent = (total + 20).toFixed(2);
+                totalNode.textContent = (total + 30).toFixed(2);
                 if (txInput) txInput.removeAttribute("required");
                 const codRadio = form.querySelector("input[name='paymentMethod'][value='cod']");
                 if (codRadio) codRadio.checked = true;
@@ -292,6 +292,12 @@ function renderCheckoutPage() {
                 if (upiRadio) upiRadio.checked = true;
                 updatePaymentUI("upi", true);
             }
+        } else if (selectedMethod === "razorpay") {
+            if (codFeeRow) codFeeRow.style.display = "none";
+            if (codSection) codSection.style.display = "none";
+            if (upiSection) upiSection.style.display = "none";
+            totalNode.textContent = total.toFixed(2);
+            if (txInput) txInput.removeAttribute("required");
         } else {
             if (codFeeRow) codFeeRow.style.display = "none";
             if (codSection) codSection.style.display = "none";
@@ -341,7 +347,7 @@ async function submitCheckout(items, baseTotal) {
             document.getElementById("upi-errors").textContent = "";
         }
     } else if (method === "cod") {
-        finalTotal = baseTotal + 20;
+        finalTotal = baseTotal + 30;
     }
 
     try {
@@ -362,6 +368,79 @@ async function submitCheckout(items, baseTotal) {
         const payload = await response.json();
         if (!response.ok) {
             throw new Error(payload.error || "Order creation failed.");
+        }
+
+        if (method === "razorpay") {
+            if (payload.mockPayment) {
+                // Mock Payment simulation for development
+                if (confirm(`[MOCK MODE] Razorpay Payment Gateway: Complete payment of ₹${finalTotal.toFixed(2)}?`)) {
+                    const verifyResponse = await fetch("/api/payments/verify-razorpay", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            orderId: payload.orderId,
+                            razorpayPaymentId: "pay_mock_" + Date.now(),
+                            razorpayOrderId: "order_mock_" + Date.now(),
+                            razorpaySignature: "mock_signature"
+                        })
+                    });
+                    const verifyPayload = await verifyResponse.json();
+                    if (verifyResponse.ok) {
+                        finalizeOrder(payload.orderId, true, phone, items, finalTotal, "razorpay", "MOCK_PAYMENT");
+                    } else {
+                        alert(verifyPayload.error || "Mock payment verification failed.");
+                    }
+                } else {
+                    alert("Payment cancelled.");
+                }
+            } else {
+                // Real Razorpay integration
+                const options = {
+                    key: payload.keyId,
+                    amount: payload.amount,
+                    currency: "INR",
+                    name: "Altos Distributor",
+                    description: `Order ID: ${payload.orderId}`,
+                    order_id: payload.razorpayOrderId,
+                    handler: async function (rzpResponse) {
+                        try {
+                            const verifyResponse = await fetch("/api/payments/verify-razorpay", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    orderId: payload.orderId,
+                                    razorpayPaymentId: rzpResponse.razorpay_payment_id,
+                                    razorpayOrderId: rzpResponse.razorpay_order_id,
+                                    razorpaySignature: rzpResponse.razorpay_signature
+                                })
+                            });
+                            const verifyPayload = await verifyResponse.json();
+                            if (!verifyResponse.ok) {
+                                throw new Error(verifyPayload.error || "Signature verification failed.");
+                            }
+                            finalizeOrder(payload.orderId, true, phone, items, finalTotal, "razorpay", rzpResponse.razorpay_payment_id);
+                        } catch (err) {
+                            alert("Payment verification failed: " + err.message);
+                        }
+                    },
+                    prefill: {
+                        name: name,
+                        email: email,
+                        contact: phone
+                    },
+                    theme: {
+                        color: "#d6001c"
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            alert("Payment overlay closed. Order is pending payment.");
+                        }
+                    }
+                };
+                const rzp = new Razorpay(options);
+                rzp.open();
+            }
+            return;
         }
 
         finalizeOrder(payload.orderId, method === "upi", phone, items, finalTotal, method, transactionId);
@@ -422,16 +501,17 @@ function renderOrders(listElement, orders) {
             const rate = item.mrp ?? item.price;
             return `<li>${item.name} (${item.unit}) × ${item.quantity} — ₹${(rate * item.quantity).toFixed(2)}</li>`;
         }).join("");
+        const codFeeLine = order.paymentMethod === 'cod' ? `<li style="list-style-type: none; margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border); color: var(--text-muted); font-size: 0.9rem;">Convenience Fee (COD) — ₹30.00</li>` : '';
         return `<div class="order-card" id="order-card-${order.id}">
             <h3>${order.customerName} — ${order.id}</h3>
             <p><strong>Email:</strong> ${order.customerEmail}</p>
             <p><strong>Phone:</strong> ${order.customerPhone}</p>
             <p><strong>Address:</strong> ${order.customerAddress}</p>
-            <p><strong>Payment:</strong> ${order.paymentMethod === 'upi' ? `UPI (Transaction ID: ${order.transactionId || 'N/A'})` : 'Cash on Delivery (COD)'}</p>
+            <p><strong>Payment:</strong> ${order.paymentMethod === 'upi' ? `UPI (Transaction ID: ${order.transactionId || 'N/A'})` : (order.paymentMethod === 'razorpay' ? `Razorpay (Payment ID: ${order.transactionId || 'N/A'})` : 'Cash on Delivery (COD)')}</p>
             <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
             <p><strong>Status:</strong> ${order.status}</p>
             <p><strong>Total:</strong> ₹${order.total.toFixed(2)}</p>
-            <ul>${itemsHtml}</ul>
+            <ul>${itemsHtml}${codFeeLine}</ul>
             <div class="order-card-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem;">
                 <button class="button button-primary-light" onclick="sendAdminWhatsApp('${order.id}')">Send WhatsApp</button>
                 <button class="button button-danger" onclick="deleteOrder('${order.id}')">Delete</button>
@@ -460,7 +540,7 @@ function sendAdminWhatsApp(orderId) {
     });
     
     if (order.paymentMethod === 'cod') {
-        lines.push('Convenience Fee (COD): ₹20.00');
+        lines.push('Convenience Fee (COD): ₹30.00');
     }
     lines.push(`Total Money: ₹${Number(order.total).toFixed(2)}`);
     lines.push(`Payment Method: ${order.paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery (COD)'}`);
@@ -560,6 +640,11 @@ function openProductForm(product = null) {
     formElement.elements.mrp.value = product?.mrp || "";
     formElement.elements.description.value = product?.description || "";
 
+    // Preserve existing database columns not exposed in the editor UI
+    formElement.dataset.bv = product?.bv || 0;
+    formElement.dataset.pv = product?.pv || 0;
+    formElement.dataset.imageUrl = product?.image_url || "";
+
     if (product) {
         formElement.elements.id.setAttribute("readonly", "readonly");
     } else {
@@ -610,9 +695,9 @@ async function handleProductSubmit(event) {
         unit: form.elements.unit.value.trim(),
         price: parseFloat(form.elements.mrp.value) || 0,
         mrp: parseFloat(form.elements.mrp.value) || 0,
-        bv: 0,
-        pv: 0,
-        image_url: "",
+        bv: parseFloat(form.dataset.bv) || 0,
+        pv: parseFloat(form.dataset.pv) || 0,
+        image_url: form.dataset.imageUrl || "",
         description: form.elements.description.value.trim()
     };
 
@@ -682,6 +767,25 @@ function bindLoginForm() {
     });
 }
 
+function updateAdminSummary(orders) {
+    const totalOrdersEl = document.getElementById("summary-total-orders");
+    const totalRevenueEl = document.getElementById("summary-total-revenue");
+    const upiRevenueEl = document.getElementById("summary-upi-revenue");
+    const codRevenueEl = document.getElementById("summary-cod-revenue");
+
+    if (!totalOrdersEl || !totalRevenueEl || !upiRevenueEl || !codRevenueEl) return;
+
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const upiRevenue = orders.filter(o => o.paymentMethod === 'upi').reduce((sum, o) => sum + (o.total || 0), 0);
+    const codRevenue = orders.filter(o => o.paymentMethod === 'cod').reduce((sum, o) => sum + (o.total || 0), 0);
+
+    totalOrdersEl.textContent = totalOrders;
+    totalRevenueEl.textContent = `₹${totalRevenue.toFixed(2)}`;
+    upiRevenueEl.textContent = `₹${upiRevenue.toFixed(2)}`;
+    codRevenueEl.textContent = `₹${codRevenue.toFixed(2)}`;
+}
+
 async function renderAdminPage() {
     bindLoginForm();
     const token = getAdminToken();
@@ -698,6 +802,7 @@ async function renderAdminPage() {
 
     try {
         adminOrders = await fetchAdminOrders();
+        updateAdminSummary(adminOrders);
         renderOrders(document.getElementById("orders-list"), adminOrders);
     } catch (error) {
         document.getElementById("orders-list").innerHTML = `<div class="product-card"><p>${error.message}</p></div>`;
@@ -706,12 +811,103 @@ async function renderAdminPage() {
     renderProductsManagement();
 }
 
+function injectWhatsAppButton() {
+    if (document.getElementById("floating-whatsapp-btn")) return;
+    const btn = document.createElement("a");
+    btn.id = "floating-whatsapp-btn";
+    btn.href = "https://wa.me/919830959157?text=Hi%2C%20I%20want%20to%20know%20more%20about%20Altos.";
+    btn.target = "_blank";
+    btn.rel = "noopener noreferrer";
+    btn.className = "floating-whatsapp";
+    btn.setAttribute("aria-label", "Contact us on WhatsApp");
+    btn.innerHTML = `
+        <span class="whatsapp-tooltip">Chat on WhatsApp</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="30" height="30" fill="currentColor">
+            <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L32 503l138.2-36.2c32.5 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-82 21.5 21.9-80-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7 .9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
+        </svg>
+    `;
+    document.body.appendChild(btn);
+}
+
+function showLandingPopup() {
+    if (sessionStorage.getItem("altos_popup_shown")) return;
+    const overlay = document.createElement("div");
+    overlay.id = "landing-popup-overlay";
+    overlay.className = "popup-overlay";
+    overlay.innerHTML = `
+        <div class="popup-card">
+            <button class="popup-close-btn" aria-label="Close popup">&times;</button>
+            <div class="popup-header">
+                <div class="popup-logo">ALTOS</div>
+            </div>
+            <div class="popup-body">
+                <h2>Build a Healthier Life & <br><span class="highlight">Earn Extra Income</span> with Altos</h2>
+                <p class="subtitle">Premium health, wellness, and personal care products.</p>
+                
+                <ul class="usp-list">
+                    <li>
+                        <span class="icon">✅</span>
+                        <div>
+                            <strong>Genuine Products</strong>
+                            <p>Direct from Altos distributor</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="icon">✅</span>
+                        <div>
+                            <strong>Home Delivery</strong>
+                            <p>Convenient delivery to your doorstep</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="icon">✅</span>
+                        <div>
+                            <strong>Business Opportunity</strong>
+                            <p>Earn commissions and build your team</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="popup-actions">
+                <button id="popup-shop-now" class="button button-primary popup-btn">Shop Now</button>
+                <a href="https://wa.me/919830959157?text=Hi%2C%20I%20want%20to%20join%20your%20Altos%20team%20and%20learn%20about%20the%20business%20opportunity." target="_blank" id="popup-join-team" class="button button-secondary popup-btn">Join My Team</a>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    const closePopup = () => {
+        overlay.classList.remove("active");
+        overlay.classList.add("fade-out");
+        setTimeout(() => {
+            overlay.remove();
+        }, 350);
+        sessionStorage.setItem("altos_popup_shown", "true");
+    };
+    
+    overlay.querySelector(".popup-close-btn").addEventListener("click", closePopup);
+    overlay.querySelector("#popup-shop-now").addEventListener("click", () => {
+        closePopup();
+        const catalog = document.getElementById("catalog");
+        if (catalog) {
+            catalog.scrollIntoView({ behavior: "smooth" });
+        }
+    });
+    overlay.querySelector("#popup-join-team").addEventListener("click", closePopup);
+    
+    setTimeout(() => {
+        overlay.classList.add("active");
+    }, 100);
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
     updateCartBadge();
+    injectWhatsAppButton();
     if (document.body.id === "page-home") {
         await loadProducts();
         initializeFilters();
         renderProducts();
+        showLandingPopup();
     }
     if (document.body.id === "page-cart") {
         renderCartPage();
