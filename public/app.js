@@ -906,6 +906,17 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (document.body.id === "page-home") {
         await loadProducts();
         initializeFilters();
+        
+        // Handle search links from educational blog posts
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQuery = urlParams.get('search');
+        if (searchQuery) {
+            const searchInput = document.getElementById("search-input");
+            if (searchInput) {
+                searchInput.value = searchQuery;
+            }
+        }
+        
         renderProducts();
         showLandingPopup();
     }
