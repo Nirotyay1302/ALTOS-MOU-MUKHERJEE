@@ -1403,8 +1403,8 @@ button, input, select, textarea {
 
 /* Popup Actions */
 .popup-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    justify-content: center;
     gap: 16px;
 }
 
@@ -1415,6 +1415,8 @@ button, input, select, textarea {
     text-align: center;
     border-radius: var(--radius-md);
     cursor: pointer;
+    width: 100%;
+    max-width: 280px;
 }
 
 /* About Me Section */
@@ -1807,7 +1809,6 @@ button, input, select, textarea {
         font-size: 1.5rem;
     }
     .popup-actions {
-        grid-template-columns: 1fr;
         gap: 12px;
     }
     .article-reader {

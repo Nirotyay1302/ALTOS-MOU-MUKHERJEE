@@ -841,7 +841,7 @@ function showLandingPopup() {
                 <div class="popup-logo">ALTOS</div>
             </div>
             <div class="popup-body">
-                <h2>Build a Healthier Life & <br><span class="highlight">Earn Extra Income</span> with Altos</h2>
+                <h2>Build a Healthier Life <br>with <span class="highlight">Altos Products</span></h2>
                 <p class="subtitle">Premium health, wellness, and personal care products.</p>
                 
                 <ul class="usp-list">
@@ -862,15 +862,14 @@ function showLandingPopup() {
                     <li>
                         <span class="icon">✅</span>
                         <div>
-                            <strong>Business Opportunity</strong>
-                            <p>Earn commissions and build your team</p>
+                            <strong>Natural Wellness</strong>
+                            <p>100% safe and effective health care</p>
                         </div>
                     </li>
                 </ul>
             </div>
             <div class="popup-actions">
                 <button id="popup-shop-now" class="button button-primary popup-btn">Shop Now</button>
-                <a href="https://wa.me/919830959157?text=Hi%2C%20I%20want%20to%20join%20your%20Altos%20team%20and%20learn%20about%20the%20business%20opportunity." target="_blank" id="popup-join-team" class="button button-secondary popup-btn">Join My Team</a>
             </div>
         </div>
     `;
@@ -893,7 +892,6 @@ function showLandingPopup() {
             catalog.scrollIntoView({ behavior: "smooth" });
         }
     });
-    overlay.querySelector("#popup-join-team").addEventListener("click", closePopup);
     
     setTimeout(() => {
         overlay.classList.add("active");
