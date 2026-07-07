@@ -5,10 +5,7 @@ const cors = require("cors");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY || "");
 const { initialize, run, get, all } = require("./database");
 
-// PayU Initialization
-const payuKey = process.env.PAYU_KEY || "";
-const payuSalt = process.env.PAYU_SALT || "";
-const payuEnv = process.env.PAYU_ENV || "test";
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -119,6 +116,139 @@ app.get("/api/orders", requireAdminAuth, async (req, res) => {
   }
 });
 
+app.get("/api/orders/:id/receipt", requireAdminAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const order = await get("SELECT * FROM orders WHERE id = ?", [id]);
+    if (!order) {
+      return res.status(404).json({ error: "Order not found." });
+    }
+    const items = await all("SELECT * FROM order_items WHERE orderId = ?", [id]);
+
+    const PDFDocument = require("pdfkit");
+    const doc = new PDFDocument({ margin: 50 });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=receipt-${order.id}.pdf`);
+    doc.pipe(res);
+
+    // Draw header
+    doc.font("Helvetica-Bold").fontSize(22).fillColor("#2B6CB0").text("ALTOS DISTRIBUTOR", 50, 50);
+    doc.font("Helvetica").fontSize(10).fillColor("#718096").text("Official Altos Product Distributor", 50, 75);
+    doc.font("Helvetica").fontSize(10).fillColor("#4A5568").text("Email: support@altos.com\nWhatsApp: +91 9830959157", 400, 50, { align: "right" });
+
+    // Divider
+    doc.moveTo(50, 105).lineTo(562, 105).strokeColor("#CBD5E0").lineWidth(1).stroke();
+
+    // Order receipt info
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#2D3748").text("ORDER RECEIPT", 50, 120);
+
+    // Left Metadata Column
+    doc.font("Helvetica-Bold").fontSize(10).fillColor("#4A5568").text("Order ID: ", 50, 140);
+    doc.font("Helvetica").text(order.id, 105, 140);
+    doc.font("Helvetica-Bold").text("Date: ", 50, 155);
+    doc.font("Helvetica").text(new Date(order.createdAt).toLocaleString(), 105, 155);
+
+    // Right Metadata Column
+    let paymentStr = order.paymentMethod === 'upi' ? `UPI (Txn ID: ${order.transactionId || 'N/A'})` : 'Cash on Delivery (COD)';
+    doc.font("Helvetica-Bold").text("Status: ", 300, 140);
+    doc.font("Helvetica").text(order.status.toUpperCase(), 355, 140);
+    doc.font("Helvetica-Bold").text("Payment: ", 300, 155);
+    doc.font("Helvetica").text(paymentStr, 355, 155);
+
+    // Billing & Customer Details
+    doc.moveTo(50, 180).lineTo(562, 180).strokeColor("#E2E8F0").lineWidth(1).stroke();
+
+    doc.font("Helvetica-Bold").fontSize(11).fillColor("#2D3748").text("BILL TO (CUSTOMER DETAILS)", 50, 195);
+    doc.font("Helvetica-Bold").fontSize(10).fillColor("#4A5568").text("Name: ", 50, 215);
+    doc.font("Helvetica").text(order.customerName, 100, 215);
+    doc.font("Helvetica-Bold").text("Phone: ", 50, 230);
+    doc.font("Helvetica").text(order.customerPhone, 100, 230);
+    doc.font("Helvetica-Bold").text("Email: ", 50, 245);
+    doc.font("Helvetica").text(order.customerEmail, 100, 245);
+    doc.font("Helvetica-Bold").text("Address: ", 50, 260);
+    doc.font("Helvetica").text(order.customerAddress, 100, 260, { width: 462 });
+
+    // Table of items
+    let currentY = doc.y + 20;
+    doc.moveTo(50, currentY).lineTo(562, currentY).strokeColor("#CBD5E0").lineWidth(1).stroke();
+    currentY += 8;
+
+    doc.font("Helvetica-Bold").fontSize(10).fillColor("#2D3748");
+    doc.text("Item Name", 50, currentY, { width: 220 });
+    doc.text("Unit", 280, currentY, { width: 60, align: "center" });
+    doc.text("Price", 350, currentY, { width: 60, align: "right" });
+    doc.text("Qty", 420, currentY, { width: 40, align: "center" });
+    doc.text("Total", 470, currentY, { width: 92, align: "right" });
+
+    currentY += 15;
+    doc.moveTo(50, currentY).lineTo(562, currentY).strokeColor("#E2E8F0").lineWidth(1).stroke();
+    currentY += 8;
+
+    doc.font("Helvetica").fontSize(10).fillColor("#4A5568");
+    let itemsSubtotal = 0;
+    items.forEach(item => {
+      const itemTotal = item.price * item.quantity;
+      itemsSubtotal += itemTotal;
+
+      doc.text(item.name, 50, currentY, { width: 220 });
+      const nameHeight = doc.heightOfString(item.name, { width: 220 });
+      const rowHeight = Math.max(nameHeight, 15);
+
+      doc.text(item.unit || "", 280, currentY, { width: 60, align: "center" });
+      doc.text(`Rs. ${item.price.toFixed(2)}`, 350, currentY, { width: 60, align: "right" });
+      doc.text(item.quantity.toString(), 420, currentY, { width: 40, align: "center" });
+      doc.text(`Rs. ${itemTotal.toFixed(2)}`, 470, currentY, { width: 92, align: "right" });
+
+      currentY += rowHeight + 8;
+
+      if (currentY > 750) {
+        doc.addPage();
+        currentY = 50;
+      }
+    });
+
+    // Divider
+    doc.moveTo(50, currentY).lineTo(562, currentY).strokeColor("#CBD5E0").lineWidth(1).stroke();
+    currentY += 10;
+
+    // Totals
+    doc.font("Helvetica");
+    doc.text("Items Subtotal:", 350, currentY, { width: 110, align: "right" });
+    doc.text(`Rs. ${itemsSubtotal.toFixed(2)}`, 470, currentY, { width: 92, align: "right" });
+    currentY += 15;
+
+    if (order.paymentMethod === 'cod') {
+      doc.text("COD Convenience Fee:", 350, currentY, { width: 110, align: "right" });
+      doc.text("Rs. 30.00", 470, currentY, { width: 92, align: "right" });
+      currentY += 15;
+    }
+
+    doc.font("Helvetica-Bold");
+    doc.text("Grand Total:", 350, currentY, { width: 110, align: "right" });
+    doc.text(`Rs. ${order.total.toFixed(2)}`, 470, currentY, { width: 92, align: "right" });
+    currentY += 30;
+
+    if (currentY > 730) {
+      doc.addPage();
+      currentY = 50;
+    }
+
+    // Signature/Footer
+    doc.moveTo(50, currentY).lineTo(562, currentY).strokeColor("#E2E8F0").lineWidth(0.5).stroke();
+    currentY += 15;
+
+    doc.font("Helvetica").fontSize(9).fillColor("#718096");
+    doc.text("Thank you for buying from Altos distributor storefront!", 50, currentY, { align: "center" });
+    doc.text("This is a computer-generated invoice and requires no signature.", 50, currentY + 12, { align: "center" });
+
+    doc.end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Unable to generate receipt PDF." });
+  }
+});
+
 app.post("/api/orders", async (req, res) => {
   const { customerName, customerEmail, customerPhone, customerAddress, paymentMethod, items, total, transactionId } = req.body;
   if (!customerName || !customerEmail || !customerPhone || !customerAddress || !items?.length) {
@@ -153,52 +283,7 @@ app.post("/api/orders", async (req, res) => {
       return res.json({ orderId, clientSecret: paymentIntent.client_secret, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY });
     }
 
-    if (paymentMethod === "payu") {
-      if (payuKey && payuSalt) {
-        const crypto = require("crypto");
-        const amountStr = Number(total).toFixed(2);
-        const productinfo = `Order ${orderId}`;
-        const firstname = customerName.split(" ")[0].replace(/[^a-zA-Z0-9]/g, "") || "Customer";
-        const email = customerEmail;
 
-        const host = req.get('host');
-        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-        const origin = `${protocol}://${host}`;
-        const surl = `${origin}/api/payments/payu-callback`;
-        const furl = `${origin}/api/payments/payu-callback`;
-
-        const hashString = `${payuKey}|${orderId}|${amountStr}|${productinfo}|${firstname}|${email}|||||||||||${payuSalt}`;
-        const hash = crypto.createHash("sha512").update(hashString).digest("hex");
-
-        const action = (payuEnv === 'prod' || payuEnv === 'production' || payuEnv === 'secure')
-          ? 'https://secure.payu.in/_payment'
-          : 'https://test.payu.in/_payment';
-
-        return res.json({
-          orderId,
-          payuForm: {
-            key: payuKey,
-            txnid: orderId,
-            amount: amountStr,
-            productinfo,
-            firstname,
-            email,
-            phone: customerPhone,
-            surl,
-            furl,
-            hash,
-            service_provider: "payu_paisa",
-            action
-          }
-        });
-      } else {
-        return res.json({
-          orderId,
-          mockPayment: true,
-          amount: total
-        });
-      }
-    }
 
     res.json({ orderId, success: true });
   } catch (error) {
@@ -255,64 +340,6 @@ app.post("/api/payments/confirm", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Unable to confirm payment." });
-  }
-});
-
-app.post("/api/payments/verify-payu", async (req, res) => {
-  const { orderId, txnid, status, mock } = req.body;
-
-  if (!payuKey || !payuSalt || mock) {
-    try {
-      await run("UPDATE orders SET status = ?, transactionId = ? WHERE id = ?", ["paid", "MOCK_PAYU_PAYMENT", orderId || txnid]);
-      return res.json({ success: true, mock: true });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Unable to confirm mock payment." });
-    }
-  }
-
-  res.status(400).json({ error: "Real PayU payments must be processed via secure callback." });
-});
-
-app.post("/api/payments/payu-callback", async (req, res) => {
-  const { key, txnid, amount, productinfo, firstname, email, status, hash, mihpayid, additional_charges } = req.body;
-
-  if (!payuKey || !payuSalt) {
-    return res.redirect(`/index.html?payment_failed=true&orderId=${txnid || "unknown"}`);
-  }
-
-  try {
-    const crypto = require("crypto");
-    const udf5 = req.body.udf5 || "";
-    const udf4 = req.body.udf4 || "";
-    const udf3 = req.body.udf3 || "";
-    const udf2 = req.body.udf2 || "";
-    const udf1 = req.body.udf1 || "";
-
-    let verifyString = "";
-    if (additional_charges) {
-      verifyString = `${additional_charges}|${payuSalt}|${status}||||||${udf5}|${udf4}|${udf3}|${udf2}|${udf1}|${email}|${firstname}|${productinfo}|${amount}|${txnid}|${key}`;
-    } else {
-      verifyString = `${payuSalt}|${status}||||||${udf5}|${udf4}|${udf3}|${udf2}|${udf1}|${email}|${firstname}|${productinfo}|${amount}|${txnid}|${key}`;
-    }
-
-    const generatedHash = crypto.createHash("sha512").update(verifyString).digest("hex");
-
-    if (generatedHash === hash) {
-      if (status === "success") {
-        await run("UPDATE orders SET status = ?, transactionId = ? WHERE id = ?", ["paid", mihpayid || txnid, txnid]);
-        res.redirect(`/index.html?payment_success=true&orderId=${txnid}`);
-      } else {
-        await run("UPDATE orders SET status = ?, transactionId = ? WHERE id = ?", ["failed", mihpayid || txnid, txnid]);
-        res.redirect(`/index.html?payment_failed=true&orderId=${txnid}`);
-      }
-    } else {
-      console.error("PayU signature validation failed. Expected:", generatedHash, "Received:", hash);
-      res.status(400).send("Invalid payment signature verification failed.");
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Unable to verify payment signature.");
   }
 });
 

@@ -292,12 +292,6 @@ function renderCheckoutPage() {
                 if (upiRadio) upiRadio.checked = true;
                 updatePaymentUI("upi", true);
             }
-        } else if (selectedMethod === "payu") {
-            if (codFeeRow) codFeeRow.style.display = "none";
-            if (codSection) codSection.style.display = "none";
-            if (upiSection) upiSection.style.display = "none";
-            totalNode.textContent = total.toFixed(2);
-            if (txInput) txInput.removeAttribute("required");
         } else {
             if (codFeeRow) codFeeRow.style.display = "none";
             if (codSection) codSection.style.display = "none";
@@ -370,50 +364,7 @@ async function submitCheckout(items, baseTotal) {
             throw new Error(payload.error || "Order creation failed.");
         }
 
-        if (method === "payu") {
-            if (payload.mockPayment) {
-                // Mock Payment simulation for development
-                if (confirm(`[MOCK MODE] PayU Payment Gateway: Complete payment of ₹${finalTotal.toFixed(2)}?`)) {
-                    const verifyResponse = await fetch("/api/payments/verify-payu", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            orderId: payload.orderId,
-                            txnid: payload.orderId,
-                            status: "success",
-                            mock: true
-                        })
-                    });
-                    const verifyPayload = await verifyResponse.json();
-                    if (verifyResponse.ok) {
-                        finalizeOrder(payload.orderId, true, phone, items, finalTotal, "payu", "MOCK_PAYU_PAYMENT");
-                    } else {
-                        alert(verifyPayload.error || "Mock payment verification failed.");
-                    }
-                } else {
-                    alert("Payment cancelled.");
-                }
-            } else {
-                // Real PayU Hosted Checkout redirection
-                const form = document.createElement("form");
-                form.action = payload.payuForm.action;
-                form.method = "POST";
 
-                for (const key in payload.payuForm) {
-                    if (key !== "action") {
-                        const input = document.createElement("input");
-                        input.type = "hidden";
-                        input.name = key;
-                        input.value = payload.payuForm[key];
-                        form.appendChild(input);
-                    }
-                }
-
-                document.body.appendChild(form);
-                form.submit();
-            }
-            return;
-        }
 
         finalizeOrder(payload.orderId, method === "upi", phone, items, finalTotal, method, transactionId);
     } catch (error) {
@@ -479,13 +430,14 @@ function renderOrders(listElement, orders) {
             <p><strong>Email:</strong> ${order.customerEmail}</p>
             <p><strong>Phone:</strong> ${order.customerPhone}</p>
             <p><strong>Address:</strong> ${order.customerAddress}</p>
-            <p><strong>Payment:</strong> ${order.paymentMethod === 'upi' ? `UPI (Transaction ID: ${order.transactionId || 'N/A'})` : (order.paymentMethod === 'payu' ? `PayU (Payment ID: ${order.transactionId || 'N/A'})` : 'Cash on Delivery (COD)')}</p>
+            <p><strong>Payment:</strong> ${order.paymentMethod === 'upi' ? `UPI (Transaction ID: ${order.transactionId || 'N/A'})` : 'Cash on Delivery (COD)'}</p>
             <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
             <p><strong>Status:</strong> ${order.status}</p>
             <p><strong>Total:</strong> ₹${order.total.toFixed(2)}</p>
             <ul>${itemsHtml}${codFeeLine}</ul>
             <div class="order-card-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem;">
                 <button class="button button-primary-light" onclick="sendAdminWhatsApp('${order.id}')">Send WhatsApp</button>
+                <button class="button button-primary" onclick="downloadReceipt('${order.id}')">Download PDF</button>
                 <button class="button button-danger" onclick="deleteOrder('${order.id}')">Delete</button>
             </div>
         </div>`;
@@ -548,7 +500,33 @@ async function deleteOrder(orderId) {
     }
 }
 
-// Order edit submission handler removed along with edit UI.
+async function downloadReceipt(orderId) {
+    const token = getAdminToken();
+    if (!token) {
+        alert('Admin not logged in. Please login to download receipts.');
+        return;
+    }
+    try {
+        const response = await fetch(`/api/orders/${orderId}/receipt`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) {
+            const errPayload = await response.json().catch(() => ({}));
+            throw new Error(errPayload.error || "Unable to download receipt.");
+        }
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt-${orderId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        alert(error.message);
+    }
+}
 
 function renderProductList(listElement, productsData) {
     if (!productsData.length) {
