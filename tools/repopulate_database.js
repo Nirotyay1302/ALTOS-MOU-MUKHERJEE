@@ -198,9 +198,7 @@ async function main() {
       }
     }
     
-    const pool = imgPools[cat] || ['img_p1_2.png'];
-    const imgFile = pool[catIndices[cat] % pool.length];
-    let imageUrl = `/images/${imgFile}`;
+    let imageUrl = '';
     
     // Check if product has an uploaded product image
     const actualImgPath = path.join(__dirname, '..', 'public', 'images', 'products', `${p.id}.jpg`);

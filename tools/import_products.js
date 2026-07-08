@@ -51,10 +51,23 @@ function parseProducts(html) {
 
 async function importToDb(products) {
   dbModule.initialize();
-  const insertSql = `INSERT OR REPLACE INTO products (id, category, name, unit, price, mrp, bv, pv, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const insertSql = `INSERT OR REPLACE INTO products (id, category, name, unit, price, mrp, bv, pv, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   for (const p of products) {
     try {
-      await dbModule.run(insertSql, [p.id, p.category, p.name, p.unit, p.price || p.mrp || 0, p.mrp || p.price || 0, p.bv || 0, p.pv || 0, 'Imported from product-list.html']);
+      const actualImgPath = path.join(__dirname, '..', 'public', 'images', 'products', `${p.id}.jpg`);
+      const imageUrl = fs.existsSync(actualImgPath) ? `/images/products/${p.id}.jpg` : '';
+      await dbModule.run(insertSql, [
+        p.id,
+        p.category,
+        p.name,
+        p.unit,
+        p.price || p.mrp || 0,
+        p.mrp || p.price || 0,
+        p.bv || 0,
+        p.pv || 0,
+        'Imported from product-list.html',
+        imageUrl
+      ]);
       console.log('Inserted', p.id, p.name);
     } catch (err) {
       console.error('Error inserting', p.id, err.message || err);
