@@ -1,0 +1,5 @@
+<resources>
+    <style name="Theme.Altos" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/white</item>
+    </style>
+</resources>
