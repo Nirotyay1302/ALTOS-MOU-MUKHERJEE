@@ -106,13 +106,14 @@ function renderProducts() {
                 
                 <div class="price-row">
                     <div class="price-wrapper">
-                        <span class="price-sell">MRP: ₹${product.mrp.toFixed(2)}</span>
+                        <span class="price-sell">₹${product.mrp.toFixed(2)}</span>
                     </div>
                 </div>
                 <div class="action-row">
-                    <div class="qty-wrapper">
-                        <label for="qty-${product.id}">Qty</label>
-                        <input id="qty-${product.id}" class="product-qty-input" type="number" min="1" value="1" />
+                    <div class="qty-stepper">
+                        <button type="button" class="stepper-btn minus" onclick="decrementQty('${product.id}')">−</button>
+                        <input id="qty-${product.id}" class="product-qty-input" type="number" min="1" value="1" readonly />
+                        <button type="button" class="stepper-btn plus" onclick="incrementQty('${product.id}')">+</button>
                     </div>
                     <div class="button-wrapper">
                         <button class="button button-secondary" onclick="addToCart('${product.id}', parseInt(document.getElementById('qty-${product.id}').value || '1', 10))">Add</button>
@@ -142,6 +143,24 @@ function initializeFilters() {
     select.addEventListener("change", renderProducts);
     const search = document.getElementById("search-input");
     search?.addEventListener("input", renderProducts);
+}
+
+function incrementQty(productId) {
+    const input = document.getElementById(`qty-${productId}`);
+    if (input) {
+        let val = parseInt(input.value || '1', 10);
+        input.value = val + 1;
+    }
+}
+
+function decrementQty(productId) {
+    const input = document.getElementById(`qty-${productId}`);
+    if (input) {
+        let val = parseInt(input.value || '1', 10);
+        if (val > 1) {
+            input.value = val - 1;
+        }
+    }
 }
 
 function addToCart(productId, quantity = 1) {
@@ -198,7 +217,7 @@ function renderCartPage() {
             <div class="cart-item-details">
                 <h3 class="cart-item-title">${item.name}</h3>
                 <div class="cart-item-meta">Code: ${item.id} • ${item.unit}</div>
-                <div class="cart-item-meta">MRP: ₹${item.mrp.toFixed(2)}</div>
+                <div class="cart-item-meta">Price: ₹${item.mrp.toFixed(2)}</div>
             </div>
             <div class="cart-item-actions">
                 <div class="qty-selector">
@@ -213,7 +232,7 @@ function renderCartPage() {
     }).join("");
 
     const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const totalAmount = cart.reduce((sum, item) => sum + item.mrp * item.quantity, 0);
     summaryCount.textContent = totalQuantity;
     summaryTotal.textContent = totalAmount.toFixed(2);
 }
@@ -284,7 +303,7 @@ function renderCheckoutPage() {
         </div>`;
     }).join("");
 
-    const total = checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const total = checkoutItems.reduce((sum, item) => sum + item.mrp * item.quantity, 0);
     totalNode.textContent = total.toFixed(2);
 
     // Dynamic UI logic for UPI / COD choice
@@ -375,7 +394,10 @@ async function submitCheckout(items, baseTotal) {
                 customerPhone: phone,
                 customerAddress: address,
                 paymentMethod: method,
-                items,
+                items: items.map(item => ({
+                    ...item,
+                    price: item.mrp
+                })),
                 total: finalTotal,
                 transactionId: transactionId
             })
