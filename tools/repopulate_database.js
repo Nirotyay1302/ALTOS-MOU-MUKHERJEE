@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const dbModule = require('../database');
 
 const descriptions = {
@@ -199,10 +201,11 @@ async function main() {
     const pool = imgPools[cat] || ['img_p1_2.png'];
     const imgFile = pool[catIndices[cat] % pool.length];
     let imageUrl = `/images/${imgFile}`;
-    if (p.id === '25018') {
-      imageUrl = '/images/products/25018.jpg';
-    } else if (p.id === '25025') {
-      imageUrl = '/images/products/25025.jpg';
+    
+    // Check if product has an uploaded product image
+    const actualImgPath = path.join(__dirname, '..', 'public', 'images', 'products', `${p.id}.jpg`);
+    if (fs.existsSync(actualImgPath)) {
+      imageUrl = `/images/products/${p.id}.jpg`;
     }
     
     catIndices[cat]++;
