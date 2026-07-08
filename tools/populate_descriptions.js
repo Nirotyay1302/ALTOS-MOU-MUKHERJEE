@@ -198,7 +198,12 @@ async function main() {
     const pool = imgPool[p.category] || ['img_p1_2.png'];
     const imgIndex = i % pool.length;
     const imgFile = pool[imgIndex];
-    const imageUrl = `/images/${imgFile}`;
+    let imageUrl = `/images/${imgFile}`;
+    if (p.id === '25018') {
+      imageUrl = '/images/products/25018.jpg';
+    } else if (p.id === '25025') {
+      imageUrl = '/images/products/25025.jpg';
+    }
     
     await dbModule.run(updateSql, [desc, imageUrl, p.id]);
     updated++;

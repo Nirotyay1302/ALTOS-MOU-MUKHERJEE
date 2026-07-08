@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 const cors = require("cors");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY || "");
 const { initialize, run, get, all } = require("./database");
@@ -16,8 +17,8 @@ const adminToken = process.env.ADMIN_TOKEN || "demo-admin-token";
 initialize();
 
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
 function requireAdminAuth(req, res, next) {
@@ -44,16 +45,73 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
+// Helper to save base64 image
+function saveBase64Image(productId, base64Data) {
+  if (!base64Data) return "";
+  
+  if (!base64Data.startsWith("data:image/")) {
+    return base64Data; // Just return it if it's already a URL
+  }
+  
+  const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+  if (!matches || matches.length !== 3) {
+    throw new Error("Invalid base64 image data format");
+  }
+  
+  const mimeType = matches[1];
+  const buffer = Buffer.from(matches[2], 'base64');
+  
+  let ext = '.png';
+  if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
+    ext = '.jpg';
+  } else if (mimeType === 'image/gif') {
+    ext = '.gif';
+  } else if (mimeType === 'image/webp') {
+    ext = '.webp';
+  }
+  
+  const filename = `${productId}${ext}`;
+  const dir = path.join(__dirname, 'public', 'images', 'products');
+  
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  
+  const filePath = path.join(dir, filename);
+  fs.writeFileSync(filePath, buffer);
+  
+  return `/images/products/${filename}`;
+}
+
+// Helper to delete product image if it exists locally
+async function deleteLocalImage(productId) {
+  try {
+    const p = await get("SELECT image_url FROM products WHERE id = ?", [productId]);
+    if (p && p.image_url && p.image_url.startsWith("/images/products/")) {
+      const filePath = path.join(__dirname, 'public', p.image_url);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+  } catch (err) {
+    console.error("Failed to delete local image for product:", productId, err);
+  }
+}
+
 app.post("/api/products", requireAdminAuth, async (req, res) => {
-  const { id, category, name, unit, price, mrp, bv, pv, description, image_url } = req.body;
+  const { id, category, name, unit, price, mrp, bv, pv, description, image_url, image_data } = req.body;
   if (!id || !category || !name || !unit || !price) {
     return res.status(400).json({ error: "Missing required product fields." });
   }
   try {
+    let finalImageUrl = image_url || "";
+    if (image_data) {
+      finalImageUrl = saveBase64Image(id, image_data);
+    }
     await run(
       `INSERT OR REPLACE INTO products (id, category, name, unit, price, mrp, bv, pv, description, image_url)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, category, name, unit, mrp || price || 0, mrp || price || 0, bv || 0, pv || 0, description || "", image_url || ""]
+      [id, category, name, unit, mrp || price || 0, mrp || price || 0, bv || 0, pv || 0, description || "", finalImageUrl]
     );
     res.status(201).json({ message: "Product saved." });
   } catch (error) {
@@ -64,11 +122,18 @@ app.post("/api/products", requireAdminAuth, async (req, res) => {
 
 app.put("/api/products/:id", requireAdminAuth, async (req, res) => {
   const { id } = req.params;
-  const { category, name, unit, price, mrp, bv, pv, description, image_url } = req.body;
+  const { category, name, unit, price, mrp, bv, pv, description, image_url, image_data } = req.body;
   try {
+    let finalImageUrl = image_url || "";
+    if (image_data) {
+      await deleteLocalImage(id);
+      finalImageUrl = saveBase64Image(id, image_data);
+    } else if (!finalImageUrl) {
+      await deleteLocalImage(id);
+    }
     await run(
       `UPDATE products SET category = ?, name = ?, unit = ?, price = ?, mrp = ?, bv = ?, pv = ?, description = ?, image_url = ? WHERE id = ?`,
-      [category, name, unit, mrp || price || 0, mrp || price || 0, bv || 0, pv || 0, description || "", image_url || "", id]
+      [category, name, unit, mrp || price || 0, mrp || price || 0, bv || 0, pv || 0, description || "", finalImageUrl, id]
     );
     res.json({ message: "Product updated." });
   } catch (error) {
@@ -80,6 +145,7 @@ app.put("/api/products/:id", requireAdminAuth, async (req, res) => {
 app.delete("/api/products/:id", requireAdminAuth, async (req, res) => {
   const { id } = req.params;
   try {
+    await deleteLocalImage(id);
     await run("DELETE FROM products WHERE id = ?", [id]);
     res.json({ message: "Product removed." });
   } catch (error) {

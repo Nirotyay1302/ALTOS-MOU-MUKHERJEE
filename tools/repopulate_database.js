@@ -198,7 +198,12 @@ async function main() {
     
     const pool = imgPools[cat] || ['img_p1_2.png'];
     const imgFile = pool[catIndices[cat] % pool.length];
-    const imageUrl = `/images/${imgFile}`;
+    let imageUrl = `/images/${imgFile}`;
+    if (p.id === '25018') {
+      imageUrl = '/images/products/25018.jpg';
+    } else if (p.id === '25025') {
+      imageUrl = '/images/products/25025.jpg';
+    }
     
     catIndices[cat]++;
     

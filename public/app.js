@@ -89,8 +89,15 @@ function renderProducts() {
 
     grid.innerHTML = filtered.map(product => {
         const gradient = fallbackGradients[product.category] || 'linear-gradient(135deg, #667eea, #764ba2)';
+        const hasImage = product.image_url && product.image_url.trim() !== "";
 
         return `<article class="product-card">
+            <div class="product-card-image-container" style="background: ${hasImage ? 'var(--surface-strong)' : gradient};">
+                ${hasImage ? 
+                    `<img src="${product.image_url}" alt="${product.name}" class="product-card-image" loading="lazy" />` : 
+                    `<div class="product-card-image-placeholder">${product.name.substring(0, 2).toUpperCase()}</div>`
+                }
+            </div>
             <div class="product-card-body">
                 <span class="product-category-tag">${product.category}</span>
                 <h3>${product.name}</h3>
@@ -180,7 +187,14 @@ function renderCartPage() {
 
     container.innerHTML = cart.map(item => {
         const gradient = fallbackGradients[item.category] || 'linear-gradient(135deg, #667eea, #764ba2)';
+        const hasImage = item.image_url && item.image_url.trim() !== "";
         return `<div class="cart-item">
+            <div class="cart-item-image-container" style="background: ${hasImage ? '#ffffff' : gradient};">
+                ${hasImage ? 
+                    `<img src="${item.image_url}" alt="${item.name}" class="cart-item-image" />` : 
+                    `<div class="cart-item-image-placeholder">${item.name.substring(0, 2).toUpperCase()}</div>`
+                }
+            </div>
             <div class="cart-item-details">
                 <h3 class="cart-item-title">${item.name}</h3>
                 <div class="cart-item-meta">Code: ${item.id} • ${item.unit}</div>
@@ -253,7 +267,14 @@ function renderCheckoutPage() {
     itemsContainer.innerHTML = checkoutItems.map(item => {
         const rate = item.mrp;
         const gradient = fallbackGradients[item.category] || 'linear-gradient(135deg, #667eea, #764ba2)';
+        const hasImage = item.image_url && item.image_url.trim() !== "";
         return `<div class="checkout-item-card">
+            <div class="cart-item-image-container" style="background: ${hasImage ? '#ffffff' : gradient}; flex-shrink: 0;">
+                ${hasImage ? 
+                    `<img src="${item.image_url}" alt="${item.name}" class="cart-item-image" />` : 
+                    `<div class="cart-item-image-placeholder">${item.name.substring(0, 2).toUpperCase()}</div>`
+                }
+            </div>
             <div class="checkout-item-info">
                 <h3>${item.name}</h3>
                 <p>Code: ${item.id} • Qty: ${item.quantity}</p>
@@ -535,8 +556,15 @@ function renderProductList(listElement, productsData) {
     }
     listElement.innerHTML = productsData.map(product => {
         const gradient = fallbackGradients[product.category] || 'linear-gradient(135deg, #667eea, #764ba2)';
+        const hasImage = product.image_url && product.image_url.trim() !== "";
 
         return `<div class="admin-product-row">
+            <div class="cart-item-image-container" style="background: ${hasImage ? '#ffffff' : gradient}; flex-shrink: 0;">
+                ${hasImage ? 
+                    `<img src="${product.image_url}" alt="${product.name}" class="cart-item-image" />` : 
+                    `<div class="cart-item-image-placeholder">${product.name.substring(0, 2).toUpperCase()}</div>`
+                }
+            </div>
             <div class="admin-product-details">
                 <h3>${product.name}</h3>
                 <div class="admin-product-meta-grid">
@@ -589,6 +617,24 @@ function openProductForm(product = null) {
     formElement.elements.unit.value = product?.unit || "";
     formElement.elements.mrp.value = product?.mrp || "";
     formElement.elements.description.value = product?.description || "";
+    formElement.elements.image_url.value = product?.image_url || "";
+
+    // Clear file input
+    const fileInput = document.getElementById("product-image-file");
+    if (fileInput) fileInput.value = "";
+
+    // Set preview
+    const previewContainer = document.getElementById("image-preview-container");
+    const previewImg = document.getElementById("product-image-preview");
+    if (previewContainer && previewImg) {
+        if (product && product.image_url) {
+            previewImg.src = product.image_url;
+            previewContainer.classList.remove("hidden");
+        } else {
+            previewImg.src = "";
+            previewContainer.classList.add("hidden");
+        }
+    }
 
     // Preserve existing database columns not exposed in the editor UI
     formElement.dataset.bv = product?.bv || 0;
@@ -635,9 +681,30 @@ async function deleteProduct(productId) {
     }
 }
 
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
+
 async function handleProductSubmit(event) {
     event.preventDefault();
     const form = event.target;
+
+    let base64Image = null;
+    const fileInput = document.getElementById("product-image-file");
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        try {
+            base64Image = await fileToBase64(fileInput.files[0]);
+        } catch (e) {
+            alert("Error reading image file.");
+            return;
+        }
+    }
+
     const data = {
         id: form.elements.id.value.trim(),
         name: form.elements.name.value.trim(),
@@ -647,7 +714,8 @@ async function handleProductSubmit(event) {
         mrp: parseFloat(form.elements.mrp.value) || 0,
         bv: parseFloat(form.dataset.bv) || 0,
         pv: parseFloat(form.dataset.pv) || 0,
-        image_url: form.dataset.imageUrl || "",
+        image_url: form.elements.image_url.value.trim(),
+        image_data: base64Image,
         description: form.elements.description.value.trim()
     };
 
@@ -747,6 +815,46 @@ async function renderAdminPage() {
     document.getElementById("new-product-button")?.addEventListener("click", () => openProductForm());
     document.getElementById("cancel-product")?.addEventListener("click", closeProductForm);
     document.getElementById("product-edit-form")?.addEventListener("submit", handleProductSubmit);
+
+    // Setup file preview and remove button listeners
+    const fileInput = document.getElementById("product-image-file");
+    const imageUrlInput = document.getElementById("product-image-url");
+    const previewContainer = document.getElementById("image-preview-container");
+    const previewImg = document.getElementById("product-image-preview");
+    const removeBtn = document.getElementById("remove-image-button");
+
+    fileInput?.addEventListener("change", async (e) => {
+        if (fileInput.files && fileInput.files[0]) {
+            try {
+                const base64 = await fileToBase64(fileInput.files[0]);
+                if (previewImg && previewContainer) {
+                    previewImg.src = base64;
+                    previewContainer.classList.remove("hidden");
+                }
+            } catch (err) {
+                alert("Error previewing image file");
+            }
+        }
+    });
+
+    imageUrlInput?.addEventListener("input", () => {
+        const val = imageUrlInput.value.trim();
+        if (val) {
+            if (previewImg && previewContainer) {
+                previewImg.src = val;
+                previewContainer.classList.remove("hidden");
+            }
+        } else if (!fileInput.files || fileInput.files.length === 0) {
+            if (previewContainer) previewContainer.classList.add("hidden");
+        }
+    });
+
+    removeBtn?.addEventListener("click", () => {
+        if (imageUrlInput) imageUrlInput.value = "";
+        if (fileInput) fileInput.value = "";
+        if (previewContainer) previewContainer.classList.add("hidden");
+        if (previewImg) previewImg.src = "";
+    });
     
     // Order edit UI removed; no event listeners bound for order editing.
 

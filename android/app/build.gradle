@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.altos'
+    namespace 'com.altos.distributor'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.altos"
+        applicationId "com.altos.distributor"
         minSdk 24
         targetSdk 33
         versionCode 1
@@ -37,7 +37,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.3'
+        kotlinCompilerExtensionVersion '1.4.8'
     }
     packagingOptions {
         resources {
