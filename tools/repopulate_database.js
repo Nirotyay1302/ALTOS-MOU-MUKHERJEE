@@ -162,7 +162,7 @@ async function main() {
   const products = await dbModule.all('SELECT id, category, name FROM products ORDER BY category, name');
   console.log(`Loaded ${products.length} products to repopulate details.`);
   
-  const updateSql = 'UPDATE products SET description = ?, image_url = ?, price = mrp, bv = 0, pv = 0 WHERE id = ?';
+  const updateSql = 'UPDATE products SET description = ?, image_url = ? WHERE id = ?';
   let updated = 0;
   
   // Track index inside each category for sequential image mapping
@@ -195,6 +195,16 @@ async function main() {
         desc = `Nourishing hair care formula containing organic extracts that strengthen roots, reduce thinning, and promote silky shine.`;
       } else if (p.category === 'Juice Concentrate') {
         desc = `Pure herbal juice concentrate containing powerful antioxidants to boost immune function and support digestive health.`;
+      } else if (p.category === 'Nail') {
+        desc = `Vibrant, long-lasting nail polish that adds a brilliant shine and color to your nails while protecting them.`;
+      } else if (p.category === 'Personal Care') {
+        desc = `High-quality personal hygiene and wellness product designed for daily comfort, care, and cleanliness.`;
+      } else if (p.category === 'Powder') {
+        desc = `Nutritious and health-promoting herbal powder formulated to support dietary wellness, energy, and daily nutrition.`;
+      } else if (p.category === 'Skin Treatment') {
+        desc = `Specialized skincare treatment cream formulated with active natural ingredients to address specific skin concerns and restore radiant health.`;
+      } else if (p.category === 'Soap') {
+        desc = `Gentle, nourishing bathing soap enriched with natural extracts to cleanse, hydrate, and refresh your skin.`;
       }
     }
     
@@ -212,7 +222,7 @@ async function main() {
     updated++;
   }
   
-  console.log(`Successfully repopulated ${updated} products in database with price = mrp, bv = 0, pv = 0, and sequential images.`);
+  console.log(`Successfully repopulated ${updated} products in database with descriptions and sequential images.`);
 }
 
 main().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); });

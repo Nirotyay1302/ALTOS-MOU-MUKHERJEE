@@ -453,13 +453,15 @@ app.post('/api/admin/import-products', requireAdminAuth, async (req, res) => {
     }
 
     const stmtSql = `INSERT INTO products (id, category, name, unit, price, mrp, bv, pv, description, image_url)
-      VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         category = excluded.category,
         name = excluded.name,
         unit = excluded.unit,
         price = excluded.price,
-        mrp = excluded.mrp`;
+        mrp = excluded.mrp,
+        bv = excluded.bv,
+        pv = excluded.pv`;
     let inserted = 0;
     const imgPools = {
       'Agri Care': ['img_p1_2.png'],
@@ -495,7 +497,18 @@ app.post('/api/admin/import-products', requireAdminAuth, async (req, res) => {
     for (const p of products) {
       try {
         const imageUrl = "";
-        await run(stmtSql, [p.id, p.category, p.name, p.unit, p.mrp || p.price || 0, p.mrp || p.price || 0, 'Imported via admin endpoint', imageUrl]);
+        await run(stmtSql, [
+          p.id,
+          p.category,
+          p.name,
+          p.unit,
+          p.price || 0,
+          p.mrp || 0,
+          p.bv || 0,
+          p.pv || 0,
+          'Imported via admin endpoint',
+          imageUrl
+        ]);
         inserted++;
       } catch (err) {
         console.error('Import product error', p.id, err && err.message ? err.message : err);
