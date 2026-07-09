@@ -205,6 +205,24 @@ async function main() {
         desc = `Specialized skincare treatment cream formulated with active natural ingredients to address specific skin concerns and restore radiant health.`;
       } else if (p.category === 'Soap') {
         desc = `Gentle, nourishing bathing soap enriched with natural extracts to cleanse, hydrate, and refresh your skin.`;
+      } else if (p.category === 'Spices & Oil') {
+        desc = `Pure, premium quality kitchen spices and cooking oil, sourced naturally to add rich aroma, flavor, and health to your daily meals.`;
+      } else if (p.category === 'Sunscreen') {
+        desc = `Advanced sun protection cream formulated with SPF to shield your skin from harmful UVA/UVB rays and prevent sunburn and tanning.`;
+      } else if (p.category === 'Syrup') {
+        desc = `Effective ayurvedic herbal syrup formulated with natural active extracts to support daily health, digestion, and wellness.`;
+      } else if (p.category === 'Tablet') {
+        desc = `Premium quality herbal tablets containing concentrated natural extracts to support daily nutrition, immunity, and overall well-being.`;
+      } else if (p.category === 'Tea') {
+        desc = `Premium quality CTC and herbal tea, carefully selected to offer a refreshing taste, rich aroma, and natural health benefits.`;
+      } else if (p.category === 'Toner') {
+        desc = `Gentle, hydrating skin toner and cleansing milk formulated with organic extracts to refresh and maintain skin pH balance.`;
+      } else if (p.category === 'Toothpaste') {
+        desc = `Herbal dental care toothpaste and gel formulated to clean teeth, protect gums, and ensure long-lasting fresh breath.`;
+      } else if (p.category === 'Veterinary') {
+        desc = `Highly effective veterinary health supplement formulated to support livestock nutrition, health, and vitality.`;
+      } else if (p.category === 'Vitamins & Minerals') {
+        desc = `High-quality dietary multivitamin supplement designed to fulfill daily nutritional requirements and support overall health.`;
       }
     }
     
