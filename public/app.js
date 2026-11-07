@@ -24,6 +24,14 @@ const storageKeys = {
     adminToken: "altosAdminToken"
 };
 
+const API_BASE = (window.location.protocol === "file:" || window.location.href.startsWith("file:")) ? "https://altos-mou-mukherjee.onrender.com" : "";
+
+function getImageUrl(url) {
+    if (!url || typeof url !== 'string' || url.trim() === "") return "";
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
+    return API_BASE + (url.startsWith('/') ? url : '/' + url);
+}
+
 let products = [];
 let adminOrders = [];
 
@@ -64,11 +72,14 @@ function updateCartBadge() {
 
 async function loadProducts() {
     try {
-        const response = await fetch("/api/products");
+        const response = await fetch(API_BASE + "/api/products");
+        if (!response.ok) throw new Error("Unable to load products");
         products = await response.json();
+        window.products = products;
     } catch (error) {
         console.error("Unable to load products", error);
-        products = [];
+        products = window.products || [];
+        window.products = products;
     }
 }
 
@@ -94,7 +105,7 @@ function renderProducts() {
         return `<article class="product-card">
             <div class="product-card-image-container" style="background: ${hasImage ? 'var(--surface-strong)' : gradient};">
                 ${hasImage ? 
-                    `<img src="${product.image_url}" alt="${product.name}" class="product-card-image" loading="lazy" />` : 
+                    `<img src="${getImageUrl(product.image_url || item.image_url)}" alt="${product?.name || item?.name}" class="product-card-image" loading="lazy" />` :
                     `<div class="product-card-image-placeholder">${product.name.substring(0, 2).toUpperCase()}</div>`
                 }
             </div>
@@ -103,7 +114,8 @@ function renderProducts() {
                 <h3>${product.name}</h3>
                 <div class="product-meta">Code: ${product.id} • Unit: ${product.unit}</div>
                 <p class="product-description">${product.description || "No description available."}</p>
-                
+                ${product.usage ? `<div class="product-card-usage"><strong>💡 Usage:</strong> ${product.usage}</div>` : ''}
+
                 <div class="price-row">
                     <div class="price-wrapper">
                         <span class="price-sell">₹${product.mrp.toFixed(2)}</span>
@@ -202,6 +214,14 @@ function renderCartPage() {
         button.textContent = "Continue shopping";
         button.href = "index.html";
         return;
+    } else {
+        button.classList.remove("button-secondary");
+        button.classList.add("button-primary");
+        button.textContent = "Proceed to Checkout";
+        button.href = "checkout.html";
+        button.onclick = () => {
+            clearBuyNow();
+        };
     }
 
     container.innerHTML = cart.map(item => {
@@ -210,7 +230,7 @@ function renderCartPage() {
         return `<div class="cart-item">
             <div class="cart-item-image-container" style="background: ${hasImage ? '#ffffff' : gradient};">
                 ${hasImage ? 
-                    `<img src="${item.image_url}" alt="${item.name}" class="cart-item-image" />` : 
+                    `<img src="${getImageUrl(item.image_url)}" alt="${item.name}" class="cart-item-image" />` :
                     `<div class="cart-item-image-placeholder">${item.name.substring(0, 2).toUpperCase()}</div>`
                 }
             </div>
@@ -290,7 +310,7 @@ function renderCheckoutPage() {
         return `<div class="checkout-item-card">
             <div class="cart-item-image-container" style="background: ${hasImage ? '#ffffff' : gradient}; flex-shrink: 0;">
                 ${hasImage ? 
-                    `<img src="${item.image_url}" alt="${item.name}" class="cart-item-image" />` : 
+                    `<img src="${getImageUrl(item.image_url)}" alt="${item.name}" class="cart-item-image" />` :
                     `<div class="cart-item-image-placeholder">${item.name.substring(0, 2).toUpperCase()}</div>`
                 }
             </div>
@@ -306,38 +326,74 @@ function renderCheckoutPage() {
     const total = checkoutItems.reduce((sum, item) => sum + item.mrp * item.quantity, 0);
     totalNode.textContent = total.toFixed(2);
 
-    // Dynamic UI logic for UPI / COD choice
+    // Dynamic UI logic for Card / UPI / COD choice & Stripe
     const radios = form.querySelectorAll("input[name='paymentMethod']");
     const codFeeRow = document.getElementById("cod-fee-row");
-    const upiSection = document.getElementById("upi-payment-section");
-    const codSection = document.getElementById("cod-payment-section");
-    const txInput = document.getElementById("transaction-id");
+    const upiSection = document.getElementById("upi-section");
+    const cardSection = document.getElementById("card-element-section");
+    const upiTxInput = document.getElementById("upi-transaction-id");
+
+    let stripe = null;
+    let elements = null;
+    let cardElement = null;
+
+    fetch(API_BASE + "/api/config")
+        .then(res => res.json())
+        .then(config => {
+            if (config.stripePublishableKey && window.Stripe) {
+                stripe = Stripe(config.stripePublishableKey);
+                elements = stripe.elements();
+                cardElement = elements.create("card");
+                if (document.getElementById("card-element")) {
+                    cardElement.mount("#card-element");
+                }
+                cardElement.on("change", event => {
+                    const displayError = document.getElementById("card-errors");
+                    if (displayError) {
+                        displayError.textContent = event.error ? event.error.message : "";
+                    }
+                });
+            } else {
+                if (cardSection) cardSection.style.display = "none";
+            }
+        })
+        .catch(err => {
+            console.error("Failed to load Stripe config", err);
+        });
 
     function updatePaymentUI(selectedMethod, skipConfirm = false) {
-        if (selectedMethod === "cod") {
+        if (selectedMethod === "card") {
+            if (cardSection) cardSection.style.display = "block";
+            if (upiSection) upiSection.style.display = "none";
+            if (codFeeRow) codFeeRow.style.display = "none";
+            totalNode.textContent = total.toFixed(2);
+            if (upiTxInput) upiTxInput.removeAttribute("required");
+        } else if (selectedMethod === "upi") {
+            if (cardSection) cardSection.style.display = "none";
+            if (upiSection) upiSection.style.display = "block";
+            if (codFeeRow) codFeeRow.style.display = "none";
+            totalNode.textContent = total.toFixed(2);
+            if (upiTxInput) upiTxInput.setAttribute("required", "required");
+        } else if (selectedMethod === "cod") {
             let confirmed = true;
             if (!skipConfirm) {
                 confirmed = confirm("Are you sure you want to select Cash on Delivery? There is an extra ₹30.00 convenience fee for COD orders.");
             }
             if (confirmed) {
-                if (codFeeRow) codFeeRow.style.display = "flex";
-                if (codSection) codSection.style.display = "block";
+                if (cardSection) cardSection.style.display = "none";
                 if (upiSection) upiSection.style.display = "none";
+                if (codFeeRow) codFeeRow.style.display = "flex";
                 totalNode.textContent = (total + 30).toFixed(2);
-                if (txInput) txInput.removeAttribute("required");
+                if (upiTxInput) upiTxInput.removeAttribute("required");
                 const codRadio = form.querySelector("input[name='paymentMethod'][value='cod']");
                 if (codRadio) codRadio.checked = true;
             } else {
-                const upiRadio = form.querySelector("input[name='paymentMethod'][value='upi']");
-                if (upiRadio) upiRadio.checked = true;
-                updatePaymentUI("upi", true);
+                const defaultRadio = form.querySelector("input[name='paymentMethod'][value='card']") || form.querySelector("input[name='paymentMethod'][value='upi']");
+                if (defaultRadio) {
+                    defaultRadio.checked = true;
+                    updatePaymentUI(defaultRadio.value, true);
+                }
             }
-        } else {
-            if (codFeeRow) codFeeRow.style.display = "none";
-            if (codSection) codSection.style.display = "none";
-            if (upiSection) upiSection.style.display = "block";
-            totalNode.textContent = total.toFixed(2);
-            if (txInput) txInput.setAttribute("required", "required");
         }
     }
 
@@ -347,15 +403,16 @@ function renderCheckoutPage() {
         });
     });
 
-    updatePaymentUI("upi", true);
+    const checkedRadio = form.querySelector("input[name='paymentMethod']:checked");
+    updatePaymentUI(checkedRadio ? checkedRadio.value : "card", true);
 
     form.addEventListener("submit", event => {
         event.preventDefault();
-        submitCheckout(checkoutItems, total);
+        submitCheckout(checkoutItems, total, stripe, cardElement);
     });
 }
 
-async function submitCheckout(items, baseTotal) {
+async function submitCheckout(items, baseTotal, stripe = null, cardElement = null) {
     const name = document.getElementById("customer-name").value.trim();
     const email = document.getElementById("customer-email").value.trim();
     const phone = document.getElementById("customer-phone").value.trim();
@@ -371,21 +428,19 @@ async function submitCheckout(items, baseTotal) {
     let finalTotal = baseTotal;
 
     if (method === "upi") {
-        const txInput = document.getElementById("transaction-id");
-        transactionId = txInput.value.trim();
+        const txInput = document.getElementById("upi-transaction-id");
+        transactionId = txInput ? txInput.value.trim() : "";
         if (!/^\d{12}$/.test(transactionId)) {
-            document.getElementById("upi-errors").textContent = "Please enter a valid 12-digit UPI Transaction ID / UTR.";
-            txInput.focus();
+            alert("Please enter a valid 12-digit UPI Transaction ID / UTR.");
+            if (txInput) txInput.focus();
             return;
-        } else {
-            document.getElementById("upi-errors").textContent = "";
         }
     } else if (method === "cod") {
         finalTotal = baseTotal + 30;
     }
 
     try {
-        const response = await fetch("/api/orders", {
+        const response = await fetch(API_BASE + "/api/orders", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -407,9 +462,34 @@ async function submitCheckout(items, baseTotal) {
             throw new Error(payload.error || "Order creation failed.");
         }
 
+        if (method === "card" && payload.clientSecret && stripe && cardElement) {
+            const result = await stripe.confirmCardPayment(payload.clientSecret, {
+                payment_method: {
+                    card: cardElement,
+                    billing_details: {
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        address: { line1: address }
+                    }
+                }
+            });
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
+            if (result.paymentIntent && result.paymentIntent.status === "succeeded") {
+                await fetch(API_BASE + "/api/payments/confirm", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        orderId: payload.orderId,
+                        paymentIntentId: result.paymentIntent.id
+                    })
+                });
+            }
+        }
 
-
-        finalizeOrder(payload.orderId, method === "upi", phone, items, finalTotal, method, transactionId);
+        finalizeOrder(payload.orderId, method === "upi" || method === "card", phone, items, finalTotal, method, transactionId);
     } catch (error) {
         alert(error.message);
     }
@@ -439,7 +519,7 @@ function clearAdminToken() {
 async function fetchAdminOrders() {
     const token = getAdminToken();
     if (!token) throw new Error("Not authenticated as admin. Please log in.");
-    const response = await fetch("/api/orders", {
+    const response = await fetch(API_BASE + "/api/orders", {
         headers: { Authorization: `Bearer ${token}` }
     });
     if (!response.ok) {
@@ -450,7 +530,7 @@ async function fetchAdminOrders() {
 }
 
 async function fetchAdminProducts() {
-    const response = await fetch("/api/products");
+    const response = await fetch(API_BASE + "/api/products");
     if (!response.ok) {
         throw new Error("Unable to load products.");
     }
@@ -488,40 +568,64 @@ function renderOrders(listElement, orders) {
 }
 
 function sendAdminWhatsApp(orderId) {
-    const order = adminOrders.find(o => o.id === orderId);
-    if (!order) return;
+    const order = (adminOrders || []).find(o => o.id === orderId);
+    if (!order) {
+        alert("Order not found! Please refresh the page.");
+        return;
+    }
     
-    const customerPhone = order.customerPhone;
-    const raw = String(customerPhone || '').replace(/\D/g, '');
+    const customerPhone = order.customerPhone || order.phone || '';
+    const raw = String(customerPhone || '').replace(/\D/g, '').replace(/^0+/, '');
     let waNumber = raw;
     if (waNumber.length === 10) waNumber = '91' + waNumber;
 
+    if (!waNumber) {
+        alert(`Customer phone number is missing or invalid for Order ${orderId}.`);
+        return;
+    }
+
     const lines = [];
-    lines.push('thank you for purchasing from altos your order will be deliver soon');
-    lines.push('..... order details');
+    lines.push('Thank you for purchasing from Altos. Your order will be delivered soon!');
+    lines.push('--- Order Details ---');
     lines.push(`Order ID: ${order.id}`);
-    lines.push('Items:');
-    order.items.forEach(it => {
-        const rate = it.mrp ?? it.price ?? 0;
-        lines.push(`- ${it.name} (${it.unit}) x${it.quantity} @ ₹${rate.toFixed(2)}`);
-    });
+    if (order.items && order.items.length > 0) {
+        lines.push('Items:');
+        order.items.forEach(it => {
+            const rate = it.mrp ?? it.price ?? 0;
+            const unit = it.unit || 'unit';
+            lines.push(`- ${it.name} (${unit}) x${it.quantity} @ ₹${Number(rate).toFixed(2)}`);
+        });
+    }
     
     if (order.paymentMethod === 'cod') {
         lines.push('Convenience Fee (COD): ₹30.00');
     }
-    lines.push(`Total Money: ₹${Number(order.total).toFixed(2)}`);
+    lines.push(`Total Amount: ₹${Number(order.total || 0).toFixed(2)}`);
     lines.push(`Payment Method: ${order.paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery (COD)'}`);
     if (order.paymentMethod === 'upi' && order.transactionId) {
         lines.push(`UPI Transaction ID: ${order.transactionId}`);
     }
-    lines.push('Thanking you');
+    lines.push('Thanking you,');
     lines.push('Mou Mukherjee');
     lines.push('(3875042)');
     
     const message = encodeURIComponent(lines.join('\n'));
-    const waLink = `https://wa.me/${waNumber}?text=${message}`;
-    window.open(waLink, '_blank');
+    const waLink = `https://api.whatsapp.com/send?phone=${waNumber}&text=${message}`;
+
+    try {
+        if (window.AndroidInterface || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            window.location.href = waLink;
+        } else {
+            const win = window.open(waLink, '_blank');
+            if (!win) {
+                window.location.href = waLink;
+            }
+        }
+    } catch (e) {
+        window.location.href = waLink;
+    }
 }
+window.sendAdminWhatsApp = sendAdminWhatsApp;
 
 // Edit functionality removed: order editing UI and handlers were deleted.
 
@@ -530,7 +634,7 @@ async function deleteOrder(orderId) {
     const token = getAdminToken();
     if (!token) { alert('Admin not logged in. Please login to delete orders.'); return; }
     try {
-        const response = await fetch(`/api/orders/${orderId}`, {
+        const response = await fetch(API_BASE + `/api/orders/${orderId}`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -550,7 +654,7 @@ async function downloadReceipt(orderId) {
         return;
     }
     try {
-        const response = await fetch(`/api/orders/${orderId}/receipt`, {
+        const response = await fetch(API_BASE + `/api/orders/${orderId}/receipt`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         if (!response.ok) {
@@ -583,7 +687,7 @@ function renderProductList(listElement, productsData) {
         return `<div class="admin-product-row">
             <div class="cart-item-image-container" style="background: ${hasImage ? '#ffffff' : gradient}; flex-shrink: 0;">
                 ${hasImage ? 
-                    `<img src="${product.image_url}" alt="${product.name}" class="cart-item-image" />` : 
+                    `<img src="${getImageUrl(product.image_url)}" alt="${product.name}" class="cart-item-image" />` :
                     `<div class="cart-item-image-placeholder">${product.name.substring(0, 2).toUpperCase()}</div>`
                 }
             </div>
@@ -639,6 +743,9 @@ function openProductForm(product = null) {
     formElement.elements.unit.value = product?.unit || "";
     formElement.elements.mrp.value = product?.mrp || "";
     formElement.elements.description.value = product?.description || "";
+    if (formElement.elements.usage) {
+        formElement.elements.usage.value = product?.usage || "";
+    }
     formElement.elements.image_url.value = product?.image_url || "";
 
     // Clear file input
@@ -690,7 +797,7 @@ async function deleteProduct(productId) {
     if (!confirm("Delete this product permanently?")) return;
     const token = getAdminToken();
     try {
-        const response = await fetch(`/api/products/${productId}`, {
+        const response = await fetch(API_BASE + `/api/products/${productId}`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -738,7 +845,8 @@ async function handleProductSubmit(event) {
         pv: parseFloat(form.dataset.pv) || 0,
         image_url: form.elements.image_url.value.trim(),
         image_data: base64Image,
-        description: form.elements.description.value.trim()
+        description: form.elements.description.value.trim(),
+        usage: form.elements.usage ? form.elements.usage.value.trim() : ""
     };
 
     if (!data.id || !data.name || !data.category || !data.unit || !data.mrp) {
@@ -751,7 +859,7 @@ async function handleProductSubmit(event) {
     const url = isEdit ? `/api/products/${data.id}` : "/api/products";
     const method = isEdit ? "PUT" : "POST";
 
-    const response = await fetch(url, {
+    const response = await fetch(API_BASE + url, {
         method,
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(data)
@@ -785,7 +893,7 @@ function bindLoginForm() {
         const username = document.getElementById("admin-username").value.trim();
         const password = document.getElementById("admin-password").value.trim();
         try {
-            const response = await fetch("/api/admin/login", {
+            const response = await fetch(API_BASE + "/api/admin/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password })

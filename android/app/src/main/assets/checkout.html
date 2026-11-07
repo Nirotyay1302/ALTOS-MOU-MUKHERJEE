@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout - Altos Distributor</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body id="page-checkout">
+    <header class="site-header">
+        <div class="site-branding">
+            <div class="brand-logo">ALTOS</div>
+            <div>
+                <h1>Checkout</h1>
+                <p>Buy your own products from Altos</p>
+            </div>
+        </div>
+        <nav class="main-nav">
+            <a href="index.html" class="nav-link">Shop</a>
+            <a href="articles.html" class="nav-link">Articles</a>
+            <a href="cart.html" class="nav-link">Cart <span id="cart-badge">0</span></a>
+            <a href="admin.html" class="nav-link">Admin</a>
+        </nav>
+    </header>
+
+    <main class="page-content">
+        <section class="checkout-grid">
+            <div class="checkout-form-card">
+                <h2>Customer details</h2>
+                <form id="checkout-form">
+                    <label for="customer-name">Full name</label>
+                    <input id="customer-name" name="customerName" type=\"text\" placeholder="Your full name" required />
+
+                    <label for="customer-email">Email address</label>
+                    <input id="customer-email" name="customerEmail" type="email" placeholder="you@example.com" required />
+
+                    <label for="customer-phone">WhatsApp No (for order details)</label>
+                    <input id="customer-phone" name="customerPhone" type="tel" placeholder="e.g. 9876543210" required />
+
+                    <label for="customer-address">Delivery address</label>
+                    <textarea id="customer-address" name="customerAddress" rows="3" placeholder="Street, City, State, PIN" required></textarea>
+
+                    <div class="payment-method-group">
+                        <label>Select payment method</label>
+                        <div class="payment-options">
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="card" checked />
+                                <span>Card / Stripe</span>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="upi" />
+                                <span>UPI (Google Pay, PhonePe, Paytm)</span>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="cod" />
+                                <span>Cash on Delivery (COD)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- UPI Details Section -->
+                    <div id="upi-section" style="display: none; margin-top: 1rem; padding: 1rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+                        <h4>Pay via UPI</h4>
+                        <p style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--color-text-light);">Scan QR code or use UPI ID: <strong>altosdistributor@upi</strong></p>
+                        <div style="text-align: center; margin: 1rem 0;">
+                            <!-- Placeholder QR Code or actual generated UPI intent QR -->
+                            <img id="upi-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=altosdistributor@upi%26pn=Altos%20Distributor" alt="UPI QR Code" style="border-radius: 8px; border: 1px solid #ccc; max-width: 100%; height: auto;" />
+                        </div>
+                        <label for="upi-transaction-id" style="display: block; margin-top: 0.5rem;">Enter UPI Transaction / UTR ID</label>
+                        <input id="upi-transaction-id" name="transactionId" type="text" placeholder="12-digit UTR / Ref No." />
+                    </div>
+
+                    <!-- Stripe Card Element Section -->
+                    <div id="card-element-section" style="margin-top: 1rem;">
+                        <label for="card-element">Card Details</label>
+                        <div id="card-element" style="padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: white;"></div>
+                        <div id="card-errors" role="alert" style="color: var(--color-primary); margin-top: 0.5rem; font-size: 0.85rem;"></div>
+                    </div>
+
+                    <button id="submit-order-button" type="submit" class="button button-primary">Place Order</button>
+                </form>
+            </div>
+
+            <div class="checkout-summary-card">
+                <div class="checkout-summary-sticky">
+                    <h2>Order summary</h2>
+                    <div id="checkout-items"></div>
+                    <div class="summary-details">
+                        <div class="summary-row" id="cod-fee-row" style="display: none; justify-content: space-between; margin-bottom: 0.5rem; color: var(--color-text-light);">
+                            <span>Convenience Fee (COD)</span>
+                            <strong>₹30.00</strong>
+                        </div>
+                    </div>
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <strong>₹<span id="checkout-total">0.00</span></strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Want to buy Altos products? Add products to cart and checkout now.</p>
+    </footer>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="app.js"></script>
+</body>
+</html>

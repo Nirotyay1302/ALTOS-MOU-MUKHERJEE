@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Altos Distributor</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body id="page-home">
+    <header class="site-header">
+        <div class="site-branding">
+            <div class="brand-logo">ALTOS</div>
+            <div>
+                <h1>Altos Distributor</h1>
+                <p>Buy your own products from Altos</p>
+            </div>
+        </div>
+        <nav class="main-nav">
+            <a class="whatsapp-top" href="https://wa.me/919830959157" target="_blank" aria-label="WhatsApp contact">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.9-12.3 8.38 8.38 0 0 1 3.8.9"/><path d="M22 2l-5.2 5.2"/><path d="M7.1 11.1a5 5 0 0 0 6.8 6.8"/></svg>
+            </a>
+            <a href="index.html" class="nav-link active">Shop</a>
+            <a href="articles.html" class="nav-link">Articles</a>
+            <a href="cart.html" class="nav-link">Cart <span id="cart-badge">0</span></a>
+            <a href="admin.html" class="nav-link">Admin</a>
+        </nav>
+    </header>
+
+    <main class="page-content">
+        <section class="hero-card">
+            <div>
+                <h2>Products, Pricing, Payments & Orders</h2>
+                <p>Modern, customer-friendly catalog with Add to Cart, Buy Now, checkout flow and admin order tracking.</p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="#catalog" class="button button-primary">View Products</a>
+            </div>
+        </section>
+
+        <section class="catalog-filters" id="catalog">
+            <div class="filter-group">
+                <label for="search-input">Search products</label>
+                <input id="search-input" type="search" placeholder="Search product name or code" />
+            </div>
+            <div class="filter-group">
+                <label for="category-select">Category</label>
+                <select id="category-select">
+                    <option value="all">All Categories</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="product-grid" id="product-grid"></section>
+
+        <!-- About Me Section -->
+        <section class="about-me-section" id="about-me">
+            <div class="about-me-grid">
+                <div class="about-me-image-container">
+                    <img src="images/mou_mukherjee.png" alt="Mou Mukherjee - Altos Business & Wellness Mentor" class="about-me-image" />
+                </div>
+                <div class="about-me-content">
+                    <h2>Mou Mukherjee</h2>
+                    <div class="title-subtitle">Your Altos Business & Wellness Mentor</div>
+                    <div class="about-me-story">
+                        <p>Welcome! I started my journey with Altos with a single mission: to empower individuals to live healthier, happier, and financially independent lives. Finding high-quality, genuine Ayurvedic and personal care products inspired me to make a difference by sharing wellness directly with households across India.</p>
+                        <p>As a certified Altos Distributor, I am dedicated to helping you find the right health solutions and guide you on your journey toward achieving physical vitality and building a sustainable business of your own.</p>
+                    </div>
+                    <div class="about-me-pillars">
+                        <div class="pillar-card">
+                            <h3>My Vision</h3>
+                            <p>To establish a flourishing community where health and wealth go hand-in-hand, making organic wellness products accessible to all.</p>
+                        </div>
+                        <div class="pillar-card">
+                            <h3>My Commitment</h3>
+                            <p>To provide 100% genuine products, reliable home delivery, and personalized mentorship for building a thriving side income.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Educational Articles Preview -->
+        <section class="home-articles-preview">
+            <h2 class="section-title">Health & Wellness Insights</h2>
+            <p class="section-subtitle">Read expert articles on nutrition, wellness habits, and organic solutions.</p>
+
+            <div class="articles-grid">
+                <!-- Preview Article 1 -->
+                <a href="articles.html#vitaminc" class="article-card">
+                    <div class="article-thumbnail-container">
+                        <span class="article-badge">Wellness Blog</span>
+                        <img src="images/nutrition_blog.png" alt="Vitamin C preview image" class="article-thumbnail" />
+                    </div>
+                    <div class="article-card-body">
+                        <div class="article-meta">
+                            <span>July 6, 2026</span>
+                            <span>•</span>
+                            <span>5 min read</span>
+                        </div>
+                        <h3>7 Impressive Ways Vitamin C Benefits Your Body</h3>
+                        <p class="article-excerpt">Vitamin C is an essential nutrient our bodies cannot produce. Learn how it boosts immunity, speeds healing, benefits heart health, and defends against pollution.</p>
+                        <span class="article-read-more">Read Article &rarr;</span>
+                    </div>
+                </a>
+
+                <!-- Preview Article 2 -->
+                <a href="articles.html#hairgrowth" class="article-card">
+                    <div class="article-thumbnail-container">
+                        <span class="article-badge">Wellness Blog</span>
+                        <img src="images/hair_growth_blog.png" alt="Hair Growth preview image" class="article-thumbnail" />
+                    </div>
+                    <div class="article-card-body">
+                        <div class="article-meta">
+                            <span>July 5, 2026</span>
+                            <span>•</span>
+                            <span>4 min read</span>
+                        </div>
+                        <h3>Boost Hair Growth with the Power of Vitamin C</h3>
+                        <p class="article-excerpt">Explore the internal and external strategies to promote healthy, strong hair growth using Amla extracts and our advanced 3-step cosmetic technique.</p>
+                        <span class="article-read-more">Read Article &rarr;</span>
+                    </div>
+                </a>
+
+                <!-- Preview Article 3 -->
+                <a href="articles.html#omega3" class="article-card">
+                    <div class="article-thumbnail-container">
+                        <span class="article-badge">Wellness Blog</span>
+                        <img src="images/omega3_blog.png" alt="Omega 3 Flax Oil preview image" class="article-thumbnail" />
+                    </div>
+                    <div class="article-card-body">
+                        <div class="article-meta">
+                            <span>July 4, 2026</span>
+                            <span>•</span>
+                            <span>3 min read</span>
+                        </div>
+                        <h3>Benefits of Omega 3 Fatty Acids (Flax Oil)</h3>
+                        <p class="article-excerpt">Discover how Omega-3 fatty acids in Altos Flax Oil Capsules promote heart health, lower cholesterol, support weight loss, and nourish your skin.</p>
+                        <span class="article-read-more">Read Article &rarr;</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="view-all-container">
+                <a href="articles.html" class="button button-secondary">Explore All Articles</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Want to buy Altos products? Add products to cart and checkout now.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

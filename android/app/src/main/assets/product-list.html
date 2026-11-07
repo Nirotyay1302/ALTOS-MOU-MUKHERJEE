@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product List</title>
+    <link rel="icon" type="image/x-icon" href="/Content/client/altos-favicon.ico">
+
+    <link href="/Content/CustomCssBundle?v=fvqhkcQ6eTbSMjifih6BnYTsKz_tPTGyh48VWUqHNyk1" rel="stylesheet"/>
+
+    <link href="/Content/css/adminlte.min.css" rel="stylesheet" />
+    <link href="/Content/css/custom-style.css" rel="stylesheet" />
+
+    <link href="/Content/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+    <link href="/Content/plugins/datatables-responsive/css/responsive.bootstrap4.min.css" rel="stylesheet" />
+    <link href="/Content/plugins/datatables-buttons/css/buttons.bootstrap4.min.css" rel="stylesheet" />
+
+    <link href="/Content/plugins/fontawesome-free-6/css/all.css" rel="stylesheet" />
+    <link href="/Content/plugins/owlcarousel/css/owl.carousel.min.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="/Content/css/dss-web.css">
+    <link rel="stylesheet" href="styles.css" />
+
+    <script src="/Bundles/JqueryBundle?v=yeSfswyPav1NDXTu5irttPc1IC9ilSO0uE8h0lLS2_Y1"></script>
+
+    <script src="/Bundles/CustomJsBundle?v=KtvRrkHOEQk3E-GmA8-wV3IQ7ApObBc324LDz-R23dU1"></script>
+
+
+    <script src="/content/plugins/inputmask/jquery.inputmask.bundle.js"></script>
+
+    <script src="/Content/js/adminlte.js"></script>
+    <script src="/Content/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="/Content/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="/Content/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="/Content/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+    <script src="/Content/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="/Content/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+    <script src="/Content/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+    <script src="/Content/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+    <script src="/Content/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+    <script src="/Content/plugins/ImageCropper/cropper.js"></script>
+    <script src="/Content/plugins/owlcarousel/js/owl.carousel.min.js"></script>
+    <script src="/CustomScripts/layout.js"></script>
+</head>
+
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
+    <script>
+        document.body.style.setProperty('--first-color', 'rgb(199, 0, 23)');
+        document.body.style.setProperty('--second-color', 'rgb(220,53,69)');
+        document.body.style.setProperty('--third-color', 'rgb(207, 39, 57)');
+        document.body.style.setProperty('--forth-color', 'rgb(247, 238, 239)');
+        document.body.style.setProperty('--fifth-color', 'rgb(52, 58, 64)');
+    </script>
+
+    <div class="wrapper">
+        <!-- Navbar -->
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light" id="navbarmenu">
+            <!-- Left navbar links -->
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link nav-menu-bars" data-widget="pushmenu" href="javascript:void(0)"><i class="far fa-bars"></i></a>
+                </li>
+            </ul>
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-link" href="javascript:void(0)">
+                                <b>3875042</b>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/dsm/account/logout" class="nav-link btn btn-link"> Logout <i class="far fa-sign-out-alt"></i></a>
+
+                        </li>
+                    </ul>
+
+        </nav>
+        <aside class="main-sidebar sidebar-dark-primary">
+            <a href="/dsm/account/home" class="text-center brand-link">
+                <img src="/Content/client/altos-logo.jpg" alt="Logo" class="brand-image">
+                <span class="brand-text">DSM</span>
+            </a>
+            <div class="sidebar">
+
+<nav>
+    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="true">
+                <li class="nav-item has-treeview" id="Home">
+                    <a class="nav-link" href="javascript:void(0)"><span><i class="far fa-bars"></i></span><p> &nbsp;Home<i class="far fa-angle-left right"></i></p></a>
+                    <ul class="nav nav-treeview">
+                            <li class="nav-item"><a class="nav-link " href="/dsm/account/dashboard"><span><i class="far fa-desktop"></i></span><p> &nbsp;Dashboard</p></a></li>
+                            <li class="nav-item"><a class="nav-link " href="/dsm/generic/qualification"><span><i class="far fa-layer-group"></i></span><p> &nbsp;Qualification</p></a></li>
+                            <li class="nav-item"><a class="nav-link " href="/dsm/generic/notification"><span><i class="far fa-layer-group"></i></span><p> &nbsp;Notification</p></a></li>
+                            <li class="nav-item"><a class="nav-link " href="/dsm/document/type/dsm-kyc"><span><i class="far fa-eye"></i></span><p> &nbsp;KYC Document</p></a></li>
+                            <li class="nav-item"><a class="nav-link " href="/dsm/document/type/dsm-bank"><span><i class="far fa-eye"></i></span><p> &nbsp;Bank Document</p></a></li>
+                            <li class="nav-item"><a class="nav-link " href="/dsm/order/list"><span><i class="far fa-layer-group"></i></span><p> &nbsp;Orders</p></a></li>
+                            <li class="nav-item"><a class="nav-link " href="/dsm/invoice/list"><span><i class="far fa-layer-group"></i></span><p> &nbsp;Invoices</p></a></li>
+                            <li class="nav-item"><a class="nav-link active" href="/dsm/common/productlist"><span><i class="far fa-shopping-bag"></i></span><p> &nbsp;Product List</p></a></li>
+                            <li class="nav-item"><a class="nav-link " href="/dsm/common/combolist"><span><i class="far fa-layer-group"></i></span><p> &nbsp;Combo List</p></a></li>
+                            <li class="nav-item"><a class="nav-link " href="/dsm/common/storelocator"><span><i class="far fa-map-marker"></i></span><p> &nbsp;Store Locator</p></a></li>
+                            <li class="nav-item"><a class="nav-link " href="/dsm/register/add"><span><i class="far fa-plus"></i></span><p> &nbsp;Registration</p></a></li>
+                    </ul>
+                </li>
+                </ul>
+</nav>
+            </div>
+        </aside>
+        <div class="content-wrapper">
+
+
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12 col-lg-6">
+                <h1 class="m-0 text-dark">Product List</h1>
+            </div>
+            <div class="col-sm-12 col-lg-6">
+                <ol class="breadcrumb float-sm-left float-lg-right">
+                    <li class="breadcrumb-item"><a href="/dsm/account/home">Home</a></li>
+                    <li class="breadcrumb-item active">Product List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    <!-- New promotional banner per user request -->
+    <div class="container-fluid mt-2">
+            <div class="alert alert-success">
+                <strong>Buy your own products from Altos</strong>
+            </div>
+            <div class="mb-3">
+                <p><strong>Want to buy Altos products?</strong> Add products to cart and checkout now.</p>
+            </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+                    <div class="card collapsed-card">
+                        <div class="card-header card-success card-outline">
+                            <h3 class="card-title">Agri Care (3)</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                                    <i class="far fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="collapse_S72KGGY4QSWY4D4LU4PJ7TNVXY" class="card-body">
+                                <div class="table-responsive text-nowrap">
+                                        <table class="table table-bordered table-hover datatables-without-paging">
+                                            <thead>
+                                                <tr class="w-auto">
+                                                    <th style="width:80px;">S.No.</th>
+                                                    <th>Code</th>
+                                                    <th>Name</th>
+                                                    <th>Unit</th>
+                                                    <th>MRP/Unit</th>
+                                                        <th>Price/Unit</th>
+                                                                                                            <th>BV/Unit</th>
+                                                                                                            <th>PV/Unit</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                    <tr>
+                                                        <td class="text-right">1</td>
+                                                        <td class="text-right">11002</td>
+                                                        <td>
+                                                            Altocare
+                                                                <a title="Buy even 50% discount is applicable"><i class="far fa-clone" aria-hidden="true"></i></a>
+                                                        </td>
+                                                        <td>250 ml</td>
+                                                        <td class="text-right">530</td>
+                                                            <td class="text-right">530.00</td>
+                                                                                                                    <td class="text-right">132.00</td>
+                                                                                                                    <td class="text-right">0.00</td>
+                                                    </tr>
+                                            </tbody>
+                                        </table>
+                                </div>
+                        </div>
+                    </div>
+        </div>
+    </div>
+    </div>
+</section>
+        </div>
+    </div>
+</body>
+</html>

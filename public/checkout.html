@@ -29,7 +29,7 @@
                 <h2>Customer details</h2>
                 <form id="checkout-form">
                     <label for="customer-name">Full name</label>
-                    <input id="customer-name" name="customerName" type="text" placeholder="Your full name" required />
+                    <input id="customer-name" name="customerName" type=\"text\" placeholder="Your full name" required />
 
                     <label for="customer-email">Email address</label>
                     <input id="customer-email" name="customerEmail" type="email" placeholder="you@example.com" required />
@@ -38,45 +38,51 @@
                     <input id="customer-phone" name="customerPhone" type="tel" placeholder="e.g. 9876543210" required />
 
                     <label for="customer-address">Delivery address</label>
-                    <textarea id="customer-address" name="customerAddress" rows="4" placeholder="Street, city, pin code" required></textarea>
+                    <textarea id="customer-address" name="customerAddress" rows="3" placeholder="Street, City, State, PIN" required></textarea>
 
-                    <h3>Payment Method</h3>
-                    <div class="payment-grid">
-                        <label class="payment-option">
-                            <input type="radio" name="paymentMethod" value="upi" checked />
-                            UPI (Pay via QR / UPI ID)
-                        </label>
-                        <label class="payment-option">
-                            <input type="radio" name="paymentMethod" value="cod" />
-                            Cash on Delivery (COD)
-                        </label>
-                    </div>
-                    <div class="payment-placeholder" id="payment-placeholder">
-                        <div id="upi-payment-section" class="upi-payment-section">
-                            <div class="upi-details-card">
-                                <p class="upi-instruction">Scan the QR code below or pay to the UPI ID, then enter the 12-digit Transaction ID/UTR.</p>
-                                <p class="upi-id-display">UPI ID: <strong>nirotyay@ybl</strong></p>
-                                <div class="qr-container" style="text-align: center; margin: 1rem 0;">
-                                    <img src="images/upi_qr.png" alt="UPI QR Code" class="upi-qr-image" style="max-width: 200px; border-radius: 8px; border: 1px solid var(--color-border);" />
-                                    <p class="qr-owner" style="font-weight: bold; margin-top: 0.25rem;">MOU MUKHERJEE</p>
-                                </div>
-                                <div class="transaction-input-group">
-                                    <label for="transaction-id">UPI Transaction ID / UTR (12 Digits)</label>
-                                    <input type="text" id="transaction-id" name="transactionId" placeholder="e.g. 612345678901" minlength="12" maxlength="12" pattern="\d{12}" />
-                                    <div id="upi-errors" class="field-error" role="alert" style="color: red; font-size: 0.85rem; margin-top: 0.25rem;"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="cod-payment-section" class="cod-payment-section hidden" style="display: none;">
-                            <p class="cod-instruction" style="color: var(--color-text-light);">Pay in cash upon delivery. Note that an extra <strong>₹30.00 convenience fee</strong> will be added to your order total.</p>
+                    <div class="payment-method-group">
+                        <label>Select payment method</label>
+                        <div class="payment-options">
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="card" checked />
+                                <span>Card / Stripe</span>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="upi" />
+                                <span>UPI (Google Pay, PhonePe, Paytm)</span>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="cod" />
+                                <span>Cash on Delivery (COD)</span>
+                            </label>
                         </div>
                     </div>
-                    <button type="submit" class="button button-primary">Place order</button>
+
+                    <!-- UPI Details Section -->
+                    <div id="upi-section" style="display: none; margin-top: 1rem; padding: 1rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+                        <h4>Pay via UPI</h4>
+                        <p style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--color-text-light);">Scan QR code or use UPI ID: <strong>altosdistributor@upi</strong></p>
+                        <div style="text-align: center; margin: 1rem 0;">
+                            <!-- Placeholder QR Code or actual generated UPI intent QR -->
+                            <img id="upi-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=altosdistributor@upi%26pn=Altos%20Distributor" alt="UPI QR Code" style="border-radius: 8px; border: 1px solid #ccc; max-width: 100%; height: auto;" />
+                        </div>
+                        <label for="upi-transaction-id" style="display: block; margin-top: 0.5rem;">Enter UPI Transaction / UTR ID</label>
+                        <input id="upi-transaction-id" name="transactionId" type="text" placeholder="12-digit UTR / Ref No." />
+                    </div>
+
+                    <!-- Stripe Card Element Section -->
+                    <div id="card-element-section" style="margin-top: 1rem;">
+                        <label for="card-element">Card Details</label>
+                        <div id="card-element" style="padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: white;"></div>
+                        <div id="card-errors" role="alert" style="color: var(--color-primary); margin-top: 0.5rem; font-size: 0.85rem;"></div>
+                    </div>
+
+                    <button id="submit-order-button" type="submit" class="button button-primary">Place Order</button>
                 </form>
             </div>
 
             <div class="checkout-summary-card">
-                <div class="summary-box">
+                <div class="checkout-summary-sticky">
                     <h2>Order summary</h2>
                     <div id="checkout-items"></div>
                     <div class="summary-details">

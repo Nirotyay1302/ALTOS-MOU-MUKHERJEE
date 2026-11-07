@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Educational Articles & Blog - Altos Distributor</title>
+    <meta name="description" content="Discover wellness tips, organic remedies, and daily nutrition guidelines. Learn how Altos Ayurvedic products can support hair growth, heart health, digestion, and more." />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body id="page-articles">
+    <header class="site-header">
+        <div class="site-branding">
+            <div class="brand-logo">ALTOS</div>
+            <div>
+                <h1>Altos Distributor</h1>
+                <p>Buy your own products from Altos</p>
+            </div>
+        </div>
+        <nav class="main-nav">
+            <a href="index.html" class="nav-link">Shop</a>
+            <a href="articles.html" class="nav-link active">Articles</a>
+            <a href="cart.html" class="nav-link">Cart <span id="cart-badge">0</span></a>
+            <a href="admin.html" class="nav-link">Admin</a>
+        </nav>
+    </header>
+
+    <main class="page-content">
+        <!-- Articles Grid View -->
+        <section id="articles-grid-section">
+            <div class="articles-intro">
+                <h2>Health, Wellness & Lifestyle Center</h2>
+                <p>Explore articles, guides, and tips on daily nutrition, Ayurvedic remedies, and healthy living.</p>
+            </div>
+
+            <!-- Categories Filter -->
+            <div class="articles-filter-container">
+                <button class="filter-btn active" onclick="filterCategory('all', this)">All Articles</button>
+                <button class="filter-btn" onclick="filterCategory('blog', this)">Wellness Blog</button>
+                <button class="filter-btn" onclick="filterCategory('nutrition', this)">Nutrition & Health Guides</button>
+            </div>
+
+            <div class="articles-cards-container">
+                <!-- Blog 1: Vitamin C -->
+                <div class="article-detail-card" data-category="blog" onclick="openArticle('vitaminc')">
+                    <div class="article-banner-wrap">
+                        <span class="article-pill">Wellness Blog</span>
+                        <img src="images/nutrition_blog.png" alt="Vitamin C header" class="article-banner-img" />
+                    </div>
+                    <div class="article-content-wrap">
+                        <div class="article-date">Published: July 6, 2026 • 5 min read</div>
+                        <h3>7 Impressive Ways Vitamin C Benefits Your Body</h3>
+                        <p class="article-snippet">Vitamin C is an essential nutrient our bodies cannot produce. Learn how it boosts immunity, speeds healing, benefits heart health, and defends against pollution.</p>
+                        <span class="read-full-link">Read Full Article &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Blog 2: Hair Growth -->
+                <div class="article-detail-card" data-category="blog" onclick="openArticle('hairgrowth')">
+                    <div class="article-banner-wrap">
+                        <span class="article-pill">Wellness Blog</span>
+                        <img src="images/hair_growth_blog.png" alt="Hair growth banner" class="article-banner-img" />
+                    </div>
+                    <div class="article-content-wrap">
+                        <div class="article-date">Published: July 5, 2026 • 4 min read</div>
+                        <h3>Boost Hair Growth with the Power of Vitamin C</h3>
+                        <p class="article-snippet">Explore internal and external strategies to promote healthy, strong hair growth using Amla extracts and our advanced 3-step cosmetic technique.</p>
+                        <span class="read-full-link">Read Full Article &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Blog 3: Omega 3 Flax Oil -->
+                <div class="article-detail-card" data-category="blog" onclick="openArticle('omega3')">
+                    <div class="article-banner-wrap">
+                        <span class="article-pill">Wellness Blog</span>
+                        <img src="images/omega3_blog.png" alt="Flax Oil Omega 3" class="article-banner-img" />
+                    </div>
+                    <div class="article-content-wrap">
+                        <div class="article-date">Published: July 4, 2026 • 3 min read</div>
+                        <h3>Benefits of Omega 3 Fatty Acids (Flax Oil)</h3>
+                        <p class="article-snippet">Discover how Omega-3 fatty acids in Altos Flax Oil Capsules promote heart health, lower cholesterol, support weight loss, and nourish your skin.</p>
+                        <span class="read-full-link">Read Full Article &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Guide 1: Daily Nutrition -->
+                <div class="article-detail-card" data-category="nutrition" onclick="openArticle('nutrition')">
+                    <div class="article-banner-wrap">
+                        <span class="article-pill nutrition-pill">Nutrition Guide</span>
+                        <img src="images/nutrition_blog.png" alt="Daily Nutrition" class="article-banner-img" />
+                    </div>
+                    <div class="article-content-wrap">
+                        <div class="article-date">Published: July 3, 2026 • 6 min read</div>
+                        <h3>The Golden Rules of Daily Nutrition for Indian Households</h3>
+                        <p class="article-snippet">Understand balanced macros, micro-nutrient deficiencies, and how herbal superfoods like Wheatpure and Spirulina restore full body vitality.</p>
+                        <span class="read-full-link">Read Full Article &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Guide 2: Noni Juice -->
+                <div class="article-detail-card" data-category="nutrition" onclick="openArticle('noni')">
+                    <div class="article-banner-wrap">
+                        <span class="article-pill nutrition-pill">Nutrition Guide</span>
+                        <img src="images/omega3_blog.png" alt="Noni Juice Guide" class="article-banner-img" />
+                    </div>
+                    <div class="article-content-wrap">
+                        <div class="article-date">Published: July 2, 2026 • 4 min read</div>
+                        <h3>Noni Fruit: The Polynesian Wonder for Cellular Longevity</h3>
+                        <p class="article-snippet">From fighting joint inflammation to rejuvenating cellular oxygen levels, discover why pure Noni concentrate is a daily necessity for longevity.</p>
+                        <span class="read-full-link">Read Full Article &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Guide 3: Women's Health & Cycle Regulation -->
+                <div class="article-detail-card" data-category="nutrition" onclick="openArticle('periods')">
+                    <div class="article-banner-wrap">
+                        <span class="article-pill nutrition-pill">Nutrition Guide</span>
+                        <img src="images/hair_growth_blog.png" alt="Women Wellness" class="article-banner-img" />
+                    </div>
+                    <div class="article-content-wrap">
+                        <div class="article-date">Published: July 1, 2026 • 5 min read</div>
+                        <h3>Ayurvedic Management of Irregular Cycles & Female Hormonal Balance</h3>
+                        <p class="article-snippet">How herbs like Ashoka, Lodhra, and Shatavari in Sundri Jiwan Forte restore hormonal balance, relieve cramps, and sustain feminine vigor.</p>
+                        <span class="read-full-link">Read Full Article &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Blog 4: Digestion -->
+                <div class="article-detail-card" data-category="blog" onclick="openArticle('digestion')">
+                    <div class="article-banner-wrap">
+                        <span class="article-pill">Wellness Blog</span>
+                        <img src="images/nutrition_blog.png" alt="Digestive Health" class="article-banner-img" />
+                    </div>
+                    <div class="article-content-wrap">
+                        <div class="article-date">Published: June 28, 2026 • 4 min read</div>
+                        <h3>Root Causes of Modern Acidity & Bloating (And How Triphala Cleanses)</h3>
+                        <p class="article-snippet">A deep dive into gut biome balancing through organic Haritaki, Bibhitaki, and Amalaki. Stop treating symptoms and heal your gut.</p>
+                        <span class="read-full-link">Read Full Article &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Blog 5: Tulsi Immunity -->
+                <div class="article-detail-card" data-category="blog" onclick="openArticle('tulsi')">
+                    <div class="article-banner-wrap">
+                        <span class="article-pill">Wellness Blog</span>
+                        <img src="images/omega3_blog.png" alt="Tulsi Liquid Extract" class="article-banner-img" />
+                    </div>
+                    <div class="article-content-wrap">
+                        <div class="article-date">Published: June 25, 2026 • 4 min read</div>
+                        <h3>Panch Tulsi Drops: Why 5 Varieties of Holy Basil Defeat Seasonal Fevers</h3>
+                        <p class="article-snippet">Learn why traditional Tulsi extract drops are 10x more bio-available than standard teas for stopping throat tickles and boosting lung immunity.</p>
+                        <span class="read-full-link">Read Full Article &rarr;</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Full Article Reader View -->
+        <section id="article-reader-section" style="display: none;">
+            <div class="reader-back-container">
+                <button class="back-to-articles-btn" onclick="showGrid()">&larr; Back to All Articles</button>
+            </div>
+
+            <article id="article-body-container" class="article-body-layout">
+                <!-- Injected via JavaScript -->
+            </article>
+
+            <div class="reader-footer-actions">
+                <button class="button button-secondary" onclick="showGrid()">&larr; View More Articles</button>
+                <a href="index.html#catalog" class="button button-primary">Explore Products In Catalog</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Want to buy Altos products? Add products to cart and checkout now.</p>
+    </footer>
+
+    <script src="app.js"></script>
+
+    <script>
+        const articlesDB = {
+            vitaminc: {
+                title: "7 Impressive Ways Vitamin C Benefits Your Body",
+                date: "July 6, 2026",
+                category: "Wellness Blog",
+                readTime: "5 min read",
+                banner: "images/nutrition_blog.png",
+                content: `
+                    <p class="lead">Vitamin C is an essential vitamin, meaning your body cannot produce it. Yet, it has many roles and has been linked to impressive health benefits.</p>
+                    <p>It is water-soluble and found in many fruits and vegetables, including oranges, strawberries, kiwi fruit, bell peppers, broccoli, spinach, and kale.</p>
+
+                    <h4>1. May reduce your risk of chronic disease</h4>
+                    <p>Vitamin C is a strong antioxidant that can strengthen your body's natural defenses. Antioxidants are molecules that boost the immune system. They do so by protecting cells from harmful molecules called free radicals. When free radicals accumulate, they can promote a state known as oxidative stress, which has been linked to many chronic diseases.</p>
+
+                    <h4>2. Helps manage high blood pressure</h4>
+                    <p>High blood pressure puts you at risk of heart disease, the leading cause of death globally. Studies have shown that Vitamin C may help lower blood pressure in both those with and without high blood pressure.</p>
+
+                    <h4>3. Lowers your risk of heart disease</h4>
+                    <p>Heart disease is the leading cause of death worldwide. Many factors increase the risk of heart disease, including high blood pressure, high levels of LDL (bad) cholesterol, low levels of HDL (good) cholesterol, and triglyceride levels. Vitamin C helps reduce these risk factors, which may reduce heart disease risk.</p>
+
+                    <h4>4. Helps prevent iron deficiency</h4>
+                    <p>Iron is an important nutrient that has a variety of functions in the body. It’s essential for making red blood cells and transporting oxygen throughout the body. Vitamin C supplements can help improve the absorption of iron from the diet, especially from plant-based sources.</p>
+
+                    <h4>5. Boosts immunity</h4>
+                    <p>One of the main reasons people take Vitamin C supplements is to boost their immunity, as Vitamin C is involved in many parts of the immune system. It encourages the production of white blood cells known as lymphocytes and phagocytes, which help protect the body against infection.</p>
+
+                    <h4>6. Protects your memory and thinking as you age</h4>
+                    <p>Dementia is a broad term used to describe symptoms of poor thinking and memory. It affects over 35 million people worldwide and typically occurs among older adults. Studies suggest that oxidative stress and inflammation near the central nervous system can increase the risk of dementia. Vitamin C is a strong antioxidant that may reduce these risks.</p>
+
+                    <h4>7. Protects your skin and supports collagen synthesis</h4>
+                    <p>Vitamin C is an essential component of collagen synthesis, the structural protein that gives skin its firmness and elasticity. Applying topical Vitamin C or consuming it daily helps fight signs of aging, brightens blemishes, and shields skin against UV-induced photodamage.</p>
+
+                    <div class="product-spotlight-box">
+                        <h3>Recommended Altos Products:</h3>
+                        <p>Experience the benefits of natural Vitamin C with our concentrated herbal solutions:</p>
+                        <div class="spotlight-actions">
+                            <a href="index.html?search=Vitamin+C#catalog" class="button button-primary">Shop Vitamin C Tablets (Code: 36033)</a>
+                            <a href="index.html?search=Amla#catalog" class="button button-secondary">Shop Ore Amla Juice (Code: 23009)</a>
+                        </div>
+                    </div>
+                `
+            },
+            hairgrowth: {
+                title: "Boost Hair Growth with the Power of Vitamin C & Herbal Extracts",
+                date: "July 5, 2026",
+                category: "Wellness Blog",
+                readTime: "4 min read",
+                banner: "images/hair_growth_blog.png",
+                content: `
+                    <p class="lead">Healthy, lustrous hair is often considered a reflection of overall health and vitality. Vitamin C is essential for hair growth because it creates collagen, a key building block for healthy hair follicles.</p>
+
+                    <h4>Collagen Production & Root Strength</h4>
+                    <p>Collagen is a major component of the hair structure. Vitamin C is essential for the synthesis of collagen, which gives hair its strength, elasticity, and resilience. A deficiency in Vitamin C can lead to dry, brittle hair that splits and breaks easily.</p>
+
+                    <h4>Iron Absorption for Scalp Oxygenation</h4>
+                    <p>Iron deficiency is one of the most common nutritional causes of excessive hair shedding in men and women. Vitamin C greatly enhances the absorption of dietary non-heme iron, ensuring hair follicles receive sufficient oxygen and micronutrients.</p>
+
+                    <h4>Combating Oxidative Stress on the Scalp</h4>
+                    <p>Free radical damage caused by environmental pollution and UV radiation can age your scalp prematurely, causing hair follicles to enter a premature resting phase. Vitamin C neutralizes these reactive oxygen species, protecting active hair bulbs.</p>
+
+                    <h4>The Altos 3-Step Ayurvedic Hair Care Routine:</h4>
+                    <ol class="article-steps-list">
+                        <li><strong>Deep Nourishment:</strong> Massage <em>Altos Onion Black Seed Hair Oil</em> or <em>Amla Hair Oil</em> into the scalp 2-3 hours before bathing to stimulate follicle circulation.</li>
+                        <li><strong>Gentle Cleansing:</strong> Wash with <em>Amla Plus Prevent Hair Fall Shampoo</em> to cleanse without stripping natural scalp moisture.</li>
+                        <li><strong>Active Protection:</strong> Apply 2-3 drops of <em>Advance Hair Serum</em> to damp hair ends to seal in hydration and guard against humidity and frizz.</li>
+                    </ol>
+
+                    <div class="product-spotlight-box">
+                        <h3>Recommended Altos Hair Care:</h3>
+                        <p>Strengthen your roots naturally with our targeted hair rejuvenation products:</p>
+                        <div class="spotlight-actions">
+                            <a href="index.html?search=Hair#catalog" class="button button-primary">Explore All Hair Care Products</a>
+                            <a href="index.html?search=Onion#catalog" class="button button-secondary">Shop Onion Black Seed Oil (Code: 19112)</a>
+                        </div>
+                    </div>
+                `
+            },
+            omega3: {
+                title: "Benefits of Omega 3 Fatty Acids: Heart, Brain & Skin Rejuvenation",
+                date: "July 4, 2026",
+                category: "Wellness Blog",
+                readTime: "3 min read",
+                banner: "images/omega3_blog.png",
+                content: `
+                    <p class="lead">Omega-3 fatty acids are among the most comprehensively studied nutrients in modern wellness. Known as essential fats, the body cannot produce them independently.</p>
+
+                    <h4>1. Cardiovascular & Arterial Health</h4>
+                    <p>Omega-3 fatty acids help maintain healthy triglyceride levels, regulate blood pressure, and maintain arterial elasticity. Regular intake helps prevent plaque accumulation in blood vessels.</p>
+
+                    <h4>2. Joint Comfort & Reduced Stiffness</h4>
+                    <p>Due to their powerful anti-inflammatory properties, Omega-3s help alleviate morning stiffness, joint soreness, and inflammatory discomfort associated with active lifestyle and aging.</p>
+
+                    <h4>3. Skin Hydration & Barrier Support</h4>
+                    <p>EPA and DHA fatty acids support skin barrier integrity, reducing trans-epidermal water loss and preventing premature fine lines caused by sun exposure and chronic dryness.</p>
+
+                    <div class="product-spotlight-box">
+                        <h3>Recommended Altos Formulation:</h3>
+                        <p>Get your daily plant-based Omega 3, 6, and 9 with pure cold-pressed flaxseed oil:</p>
+                        <div class="spotlight-actions">
+                            <a href="index.html?search=Flax#catalog" class="button button-primary">Shop Flax Oil Capsules (Code: 12038)</a>
+                        </div>
+                    </div>
+                `
+            },
+            nutrition: {
+                title: "The Golden Rules of Daily Nutrition for Indian Households",
+                date: "July 3, 2026",
+                category: "Nutrition & Health Guides",
+                readTime: "6 min read",
+                banner: "images/nutrition_blog.png",
+                content: `
+                    <p class="lead">Modern Indian lifestyles often involve high carbohydrate consumption paired with hidden micronutrient and protein deficiencies.</p>
+                    <p>Balancing daily nutrition does not require dramatic diets, but rather the steady integration of dense, bioavailable superfoods into your routine.</p>
+
+                    <h4>The Micronutrient Gap</h4>
+                    <p>Processed cooking and refined flours strip vital trace minerals like Zinc, Magnesium, and Vitamin B12. Incorporating herbal green powders such as pure Wheat Grass (Wheatpure) and Spirulina provides concentrated chlorophyll, amino acids, and minerals in easy-to-absorb organic forms.</p>
+
+                    <h4>Digestive Fire (Agni)</h4>
+                    <p>According to Ayurveda, proper nutrition is not just what you eat, but what you digest. Drinking warm water, eating fresh meals, and consuming digestive aids like Abhizyme prevent toxin accumulation (Ama).</p>
+
+                    <div class="product-spotlight-box">
+                        <h3>Key Daily Staples:</h3>
+                        <p>Complete your family's daily nutritional foundation with these essential concentrates:</p>
+                        <div class="spotlight-actions">
+                            <a href="index.html?search=Wheatpure#catalog" class="button button-primary">Shop Wheatpure Grass Powder (Code: 30054)</a>
+                            <a href="index.html?search=Spirulina#catalog" class="button button-secondary">Shop Spirulina Tablets (Code: 36018)</a>
+                        </div>
+                    </div>
+                `
+            },
+            noni: {
+                title: "Noni Fruit: The Polynesian Wonder for Cellular Longevity",
+                date: "July 2, 2026",
+                category: "Nutrition & Health Guides",
+                readTime: "4 min read",
+                banner: "images/omega3_blog.png",
+                content: `
+                    <p class="lead">Morinda citrifolia, commonly known as Noni, has been cherished for over 2,000 years in Ayurvedic and Polynesian healing traditions for cellular repair and immunity.</p>
+
+                    <h4>Rich in Proxeronine & Scopoletin</h4>
+                    <p>Noni fruit contains high amounts of proxeronine, which transforms into xeronine within the body to regulate enzyme function, accelerate cell wall nutrient uptake, and enhance tissue revitalization.</p>
+
+                    <h4>How to Consume Noni for Maximum Absorption:</h4>
+                    <p>Drink 15-30 ml diluted in a glass of lukewarm water first thing in the morning on an empty stomach. Wait 30 minutes before having breakfast.</p>
+
+                    <div class="product-spotlight-box">
+                        <h3>Pure Noni Concentrate:</h3>
+                        <p>Packed with phytonutrients, trace minerals, and natural fruit enzymes:</p>
+                        <div class="spotlight-actions">
+                            <a href="index.html?search=Noni#catalog" class="button button-primary">Shop Altos Noni Juice (Code: 23027)</a>
+                            <a href="index.html?search=Noni#catalog" class="button button-secondary">Shop Noni Capsules (Code: 12165)</a>
+                        </div>
+                    </div>
+                `
+            },
+            periods: {
+                title: "Ayurvedic Management of Irregular Cycles & Female Hormonal Balance",
+                date: "July 1, 2026",
+                category: "Nutrition & Health Guides",
+                readTime: "5 min read",
+                banner: "images/hair_growth_blog.png",
+                content: `
+                    <p class="lead">Irregular menstrual cycles, cramps, mood fluctuations, and fatigue are common signs of hormonal imbalance exacerbated by stress and dietary shifts.</p>
+
+                    <h4>The Power of Classical Herbs</h4>
+                    <p>Ayurveda utilizes specific rasayana herbs to tone uterine musculature and harmonize the endocrine system:</p>
+                    <ul>
+                        <li><strong>Ashoka Bark:</strong> Calms menstrual cramping and regularizes heavy blood flow.</li>
+                        <li><strong>Lodhra:</strong> Purifies blood and relieves pelvic heaviness and inflammation.</li>
+                        <li><strong>Shatavari:</strong> Promotes reproductive tissue nourishment, hormonal equilibrium, and natural feminine stamina.</li>
+                    </ul>
+
+                    <div class="product-spotlight-box">
+                        <h3>Recommended Female Wellness Tonic:</h3>
+                        <p>Sundri Jiwan Forte Syrup is a proprietary Ayurvedic tonic crafted specifically for women's holistic health:</p>
+                        <div class="spotlight-actions">
+                            <a href="index.html?search=Sundri#catalog" class="button button-primary">Shop Sundri Jiwan Forte (Code: 35037)</a>
+                            <a href="index.html?search=Shatavari#catalog" class="button button-secondary">Shop Shatavari Tablets (Code: 36023)</a>
+                        </div>
+                    </div>
+                `
+            },
+            digestion: {
+                title: "Root Causes of Modern Acidity & Bloating (And How Triphala Cleanses)",
+                date: "June 28, 2026",
+                category: "Wellness Blog",
+                readTime: "4 min read",
+                banner: "images/nutrition_blog.png",
+                content: `
+                    <p class="lead">Chronic heartburn, bloating, and irregular bowel habits often stem from sluggish digestive transit and poor gut microbiome diversity.</p>
+
+                    <h4>Why Triphala Remains the Master Cleanser</h4>
+                    <p>Triphala is an ancient triad consisting of three revered fruits:</p>
+                    <ul>
+                        <li><strong>Amalaki (Amla):</strong> Cools excessive Pitta (stomach acid) and supports liver enzyme balance.</li>
+                        <li><strong>Bibhitaki:</strong> Removes excess mucus from the intestinal lining.</li>
+                        <li><strong>Haritaki:</strong> Naturally tones bowel walls and ensures gentle, complete elimination without cramping.</li>
+                    </ul>
+
+                    <div class="product-spotlight-box">
+                        <h3>Restore Your Gut Today:</h3>
+                        <p>Enjoy natural digestive regularity with traditional Triphala powder and digestive enzymes:</p>
+                        <div class="spotlight-actions">
+                            <a href="index.html?search=Triphala#catalog" class="button button-primary">Shop Triphala Churna (Code: 30067)</a>
+                            <a href="index.html?search=Abhizyme#catalog" class="button button-secondary">Shop Abhizyme Syrup (Code: 35012)</a>
+                        </div>
+                    </div>
+                `
+            },
+            tulsi: {
+                title: "Panch Tulsi Drops: Why 5 Varieties of Holy Basil Defeat Seasonal Fevers",
+                date: "June 25, 2026",
+                category: "Wellness Blog",
+                readTime: "4 min read",
+                banner: "images/omega3_blog.png",
+                content: `
+                    <p class="lead">Tulsi is rightfully revered in Indian medicine as the Queen of Herbs for its unmatched adaptogenic, antiviral, and respiratory defense qualities.</p>
+
+                    <h4>The Synergy of 5 Sacred Tulsi Types</h4>
+                    <p>While single tulsi leaf tea provides mild comfort, concentrated <em>Panch Tulsi</em> extract combines Vishnu Tulsi, Rama Tulsi, Shyama Tulsi, Bisva Tulsi, and Van Tulsi. This multi-variety synergy delivers superior antimicrobial eugenol content.</p>
+
+                    <h4>Daily Usage Instructions:</h4>
+                    <p>Add 2-3 drops of <strong>Altos Tulsi Power</strong> to a warm cup of water, tea, or juice 2-3 times daily. Inhale the aromatic steam before drinking for soothing throat and bronchial opening.</p>
+
+                    <div class="product-spotlight-box">
+                        <h3>Altos Immunity Flagship:</h3>
+                        <p>Protect your family through all seasons with genuine concentrated liquid extracts:</p>
+                        <div class="spotlight-actions">
+                            <a href="index.html?search=Tulsi+Power#catalog" class="button button-primary">Shop Tulsi Power 30ml (Code: 25018)</a>
+                            <a href="index.html?search=Tulsi+Power#catalog" class="button button-secondary">Shop Tulsi + Haldi Combo (Code: 25025)</a>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+        function openArticle(articleId) {
+            const article = articlesDB[articleId];
+            if (!article) return;
+
+            const grid = document.getElementById('articles-grid-section');
+            const reader = document.getElementById('article-reader-section');
+            const body = document.getElementById('article-body-container');
+
+            body.innerHTML = `
+                <div class="article-reader-hero">
+                    <span class="article-pill">${article.category}</span>
+                    <h1>${article.title}</h1>
+                    <div class="reader-meta">
+                        <span>${article.date}</span>
+                        <span>•</span>
+                        <span>${article.readTime}</span>
+                        <span>•</span>
+                        <span>Written by Altos Wellness Mentors</span>
+                    </div>
+                    <img src="${article.banner}" alt="${article.title}" class="reader-hero-image" />
+                </div>
+                <div class="article-reader-prose">
+                    ${article.content}
+                </div>
+            `;
+
+            grid.style.display = 'none';
+            reader.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.location.hash = articleId;
+        }
+
+        function showGrid() {
+            document.getElementById('articles-grid-section').style.display = 'block';
+            document.getElementById('article-reader-section').style.display = 'none';
+            window.location.hash = '';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function filterCategory(category, buttonEl) {
+            // Update active button state
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (buttonEl) buttonEl.classList.add('active');
+
+            const cards = document.querySelectorAll('.article-detail-card');
+            cards.forEach(card => {
+                if (category === 'all') {
+                    card.style.display = 'flex';
+                } else {
+                    const cardCat = card.getAttribute('data-category');
+                    if (cardCat === category) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+
+            // Ensure grid is visible and reader is hidden
+            showGrid();
+        }
+
+        // Support direct linking via hash if desired
+        window.addEventListener('load', () => {
+            const hash = window.location.hash;
+            if (hash === '#vitaminc') openArticle('vitaminc');
+            if (hash === '#hairgrowth') openArticle('hairgrowth');
+            if (hash === '#omega3') openArticle('omega3');
+            if (hash === '#nutrition') openArticle('nutrition');
+            if (hash === '#noni') openArticle('noni');
+            if (hash === '#periods') openArticle('periods');
+            if (hash === '#digestion') openArticle('digestion');
+            if (hash === '#tulsi') openArticle('tulsi');
+        });
+    </script>
+</body>
+</html>
