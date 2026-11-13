@@ -97,14 +97,14 @@ function initialize() {
         bv REAL NOT NULL,
         pv REAL NOT NULL,
         description TEXT,
-        image_url TEXT
+        image_url TEXT,
+        usage TEXT
       )
     `);
 
     // Migration for existing databases
-    db.run("ALTER TABLE products ADD COLUMN image_url TEXT", [], err => {
-      // Silently ignore if column already exists
-    });
+    db.run("ALTER TABLE products ADD COLUMN image_url TEXT", [], err => {});
+    db.run("ALTER TABLE products ADD COLUMN usage TEXT", [], err => {});
 
     db.run(`
       CREATE TABLE IF NOT EXISTS orders (
@@ -120,9 +120,7 @@ function initialize() {
       )
     `);
 
-    db.run("ALTER TABLE orders ADD COLUMN transactionId TEXT", [], err => {
-      // Silently ignore if column already exists
-    });
+    db.run("ALTER TABLE orders ADD COLUMN transactionId TEXT", [], err => {});
 
     db.run(`
       CREATE TABLE IF NOT EXISTS order_items (
@@ -158,6 +156,76 @@ function initialize() {
     seedStatement.finalize(err => {
       if (err) {
         console.error("Error seeding products", err);
+      }
+    });
+
+    // Seed previous orders if orders table is empty
+    db.get("SELECT COUNT(*) as count FROM orders", [], (err, row) => {
+      if (!err && row && row.count === 0) {
+        const sampleOrders = [
+          {
+            id: "ORD-1715012345678",
+            createdAt: "2026-07-06T10:30:00.000Z",
+            customerName: "Rahul Sharma",
+            customerEmail: "rahul@example.com",
+            customerPhone: "9876543210",
+            customerAddress: "12 Park Street, Kolkata, West Bengal 700016",
+            paymentMethod: "upi",
+            total: 878.00,
+            status: "completed",
+            transactionId: "405612345678",
+            items: [
+              { productId: "36033", name: "Vitamin C Tablets", unit: "60 tabs", price: 350.00, quantity: 2 },
+              { productId: "23009", name: "Ore Amla Juice", unit: "500 ml", price: 178.00, quantity: 1 }
+            ]
+          },
+          {
+            id: "ORD-1715098765432",
+            createdAt: "2026-07-05T14:15:00.000Z",
+            customerName: "Priya Singh",
+            customerEmail: "priya@example.com",
+            customerPhone: "9123456789",
+            customerAddress: "45 MG Road, Mumbai, Maharashtra 400001",
+            paymentMethod: "cod",
+            total: 625.00,
+            status: "pending",
+            transactionId: null,
+            items: [
+              { productId: "19112", name: "Onion Black Seed Hair Oil", unit: "100 ml", price: 295.00, quantity: 2 }
+            ]
+          },
+          {
+            id: "ORD-1715123456789",
+            createdAt: "2026-07-04T09:45:00.000Z",
+            customerName: "Amit Kumar",
+            customerEmail: "amit@example.com",
+            customerPhone: "9988776655",
+            customerAddress: "78 Sector 18, Noida, Uttar Pradesh 201301",
+            paymentMethod: "upi",
+            total: 1250.00,
+            status: "completed",
+            transactionId: "405698765432",
+            items: [
+              { productId: "23027", name: "Altos Noni Juice", unit: "1000 ml", price: 850.00, quantity: 1 },
+              { productId: "36018", name: "Spirulina Tablets", unit: "100 tabs", price: 400.00, quantity: 1 }
+            ]
+          }
+        ];
+
+        sampleOrders.forEach(ord => {
+          db.run(
+            `INSERT OR IGNORE INTO orders (id, createdAt, customerName, customerEmail, customerPhone, customerAddress, paymentMethod, total, status, transactionId)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [ord.id, ord.createdAt, ord.customerName, ord.customerEmail, ord.customerPhone, ord.customerAddress, ord.paymentMethod, ord.total, ord.status, ord.transactionId]
+          );
+          ord.items.forEach(it => {
+            db.run(
+              `INSERT INTO order_items (orderId, productId, name, unit, price, quantity)
+               VALUES (?, ?, ?, ?, ?, ?)`,
+              [ord.id, it.productId, it.name, it.unit, it.price, it.quantity]
+            );
+          });
+        });
       }
     });
   });

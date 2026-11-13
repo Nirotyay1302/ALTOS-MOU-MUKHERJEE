@@ -35,9 +35,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize().statusBarsPadding()
                 ) {
-                    WebViewScreen("https://altos-mou-mukherjee.onrender.com/")
+                    WebViewScreen("file:///android_asset/index.html")
                 }
             }
         }
@@ -285,12 +285,16 @@ fun WebViewScreen(url: String) {
                 settings.domStorageEnabled = true
                 settings.allowFileAccess = true
                 settings.allowContentAccess = true
+                @Suppress("DEPRECATION")
+                settings.allowFileAccessFromFileURLs = true
+                @Suppress("DEPRECATION")
+                settings.allowUniversalAccessFromFileURLs = true
                 settings.javaScriptCanOpenWindowsAutomatically = true
-                settings.setSupportMultipleWindows(true)
+                settings.setSupportMultipleWindows(false)
                 settings.databaseEnabled = true
                 settings.loadWithOverviewMode = true
                 settings.useWideViewPort = true
-                settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
                 settings.textZoom = 100
 
                 loadUrl(url)

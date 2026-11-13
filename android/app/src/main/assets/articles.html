@@ -29,7 +29,7 @@
         <section id="articles-grid-section">
             <div class="articles-intro">
                 <h2>Health, Wellness & Lifestyle Center</h2>
-                <p>Explore articles, guides, and tips on daily nutrition, Ayurvedic remedies, and healthy living.</p>
+                <p>Explore expert articles, guides, and tips on daily nutrition, Ayurvedic remedies, and healthy living by Mou Mukherjee.</p>
             </div>
 
             <!-- Categories Filter -->
@@ -86,7 +86,7 @@
                 <div class="article-detail-card" data-category="nutrition" onclick="openArticle('nutrition')">
                     <div class="article-banner-wrap">
                         <span class="article-pill nutrition-pill">Nutrition Guide</span>
-                        <img src="images/nutrition_blog.png" alt="Daily Nutrition" class="article-banner-img" />
+                        <img src="images/altos_products_blog.png" alt="Daily Nutrition" class="article-banner-img" />
                     </div>
                     <div class="article-content-wrap">
                         <div class="article-date">Published: July 3, 2026 • 6 min read</div>
@@ -100,7 +100,7 @@
                 <div class="article-detail-card" data-category="nutrition" onclick="openArticle('noni')">
                     <div class="article-banner-wrap">
                         <span class="article-pill nutrition-pill">Nutrition Guide</span>
-                        <img src="images/omega3_blog.png" alt="Noni Juice Guide" class="article-banner-img" />
+                        <img src="images/noni_juice_blog.png" alt="Noni Juice Guide" class="article-banner-img" />
                     </div>
                     <div class="article-content-wrap">
                         <div class="article-date">Published: July 2, 2026 • 4 min read</div>
@@ -114,7 +114,7 @@
                 <div class="article-detail-card" data-category="nutrition" onclick="openArticle('periods')">
                     <div class="article-banner-wrap">
                         <span class="article-pill nutrition-pill">Nutrition Guide</span>
-                        <img src="images/hair_growth_blog.png" alt="Women Wellness" class="article-banner-img" />
+                        <img src="images/irregular_periods_blog.png" alt="Women Wellness" class="article-banner-img" />
                     </div>
                     <div class="article-content-wrap">
                         <div class="article-date">Published: July 1, 2026 • 5 min read</div>
@@ -128,7 +128,7 @@
                 <div class="article-detail-card" data-category="blog" onclick="openArticle('digestion')">
                     <div class="article-banner-wrap">
                         <span class="article-pill">Wellness Blog</span>
-                        <img src="images/nutrition_blog.png" alt="Digestive Health" class="article-banner-img" />
+                        <img src="images/digestive_health_blog.png" alt="Digestive Health" class="article-banner-img" />
                     </div>
                     <div class="article-content-wrap">
                         <div class="article-date">Published: June 28, 2026 • 4 min read</div>
@@ -142,7 +142,7 @@
                 <div class="article-detail-card" data-category="blog" onclick="openArticle('tulsi')">
                     <div class="article-banner-wrap">
                         <span class="article-pill">Wellness Blog</span>
-                        <img src="images/omega3_blog.png" alt="Tulsi Liquid Extract" class="article-banner-img" />
+                        <img src="images/tulsi_power_blog.png" alt="Tulsi Liquid Extract" class="article-banner-img" />
                     </div>
                     <div class="article-content-wrap">
                         <div class="article-date">Published: June 25, 2026 • 4 min read</div>
@@ -287,7 +287,7 @@
                 date: "July 3, 2026",
                 category: "Nutrition & Health Guides",
                 readTime: "6 min read",
-                banner: "images/nutrition_blog.png",
+                banner: "images/altos_products_blog.png",
                 content: `
                     <p class="lead">Modern Indian lifestyles often involve high carbohydrate consumption paired with hidden micronutrient and protein deficiencies.</p>
                     <p>Balancing daily nutrition does not require dramatic diets, but rather the steady integration of dense, bioavailable superfoods into your routine.</p>
@@ -313,7 +313,7 @@
                 date: "July 2, 2026",
                 category: "Nutrition & Health Guides",
                 readTime: "4 min read",
-                banner: "images/omega3_blog.png",
+                banner: "images/noni_juice_blog.png",
                 content: `
                     <p class="lead">Morinda citrifolia, commonly known as Noni, has been cherished for over 2,000 years in Ayurvedic and Polynesian healing traditions for cellular repair and immunity.</p>
 
@@ -338,7 +338,7 @@
                 date: "July 1, 2026",
                 category: "Nutrition & Health Guides",
                 readTime: "5 min read",
-                banner: "images/hair_growth_blog.png",
+                banner: "images/irregular_periods_blog.png",
                 content: `
                     <p class="lead">Irregular menstrual cycles, cramps, mood fluctuations, and fatigue are common signs of hormonal imbalance exacerbated by stress and dietary shifts.</p>
 
@@ -365,7 +365,7 @@
                 date: "June 28, 2026",
                 category: "Wellness Blog",
                 readTime: "4 min read",
-                banner: "images/nutrition_blog.png",
+                banner: "images/digestive_health_blog.png",
                 content: `
                     <p class="lead">Chronic heartburn, bloating, and irregular bowel habits often stem from sluggish digestive transit and poor gut microbiome diversity.</p>
 
@@ -392,7 +392,7 @@
                 date: "June 25, 2026",
                 category: "Wellness Blog",
                 readTime: "4 min read",
-                banner: "images/omega3_blog.png",
+                banner: "images/tulsi_power_blog.png",
                 content: `
                     <p class="lead">Tulsi is rightfully revered in Indian medicine as the Queen of Herbs for its unmatched adaptogenic, antiviral, and respiratory defense qualities.</p>
 
@@ -431,7 +431,7 @@
                         <span>•</span>
                         <span>${article.readTime}</span>
                         <span>•</span>
-                        <span>Written by Altos Wellness Mentors</span>
+                        <span>Written by Mou Mukherjee (Altos Mentor)</span>
                     </div>
                     <img src="${article.banner}" alt="${article.title}" class="reader-hero-image" />
                 </div>
@@ -449,12 +449,13 @@
         function showGrid() {
             document.getElementById('articles-grid-section').style.display = 'block';
             document.getElementById('article-reader-section').style.display = 'none';
-            window.location.hash = '';
+            if (window.location.hash) {
+                history.pushState("", document.title, window.location.pathname + window.location.search);
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function filterCategory(category, buttonEl) {
-            // Update active button state
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             if (buttonEl) buttonEl.classList.add('active');
 
@@ -471,23 +472,20 @@
                     }
                 }
             });
-
-            // Ensure grid is visible and reader is hidden
             showGrid();
         }
 
-        // Support direct linking via hash if desired
-        window.addEventListener('load', () => {
-            const hash = window.location.hash;
-            if (hash === '#vitaminc') openArticle('vitaminc');
-            if (hash === '#hairgrowth') openArticle('hairgrowth');
-            if (hash === '#omega3') openArticle('omega3');
-            if (hash === '#nutrition') openArticle('nutrition');
-            if (hash === '#noni') openArticle('noni');
-            if (hash === '#periods') openArticle('periods');
-            if (hash === '#digestion') openArticle('digestion');
-            if (hash === '#tulsi') openArticle('tulsi');
-        });
+        function handleHash() {
+            const hash = window.location.hash.replace('#', '').trim();
+            if (hash && articlesDB[hash]) {
+                openArticle(hash);
+            } else {
+                showGrid();
+            }
+        }
+
+        window.addEventListener('load', handleHash);
+        window.addEventListener('hashchange', handleHash);
     </script>
 </body>
 </html>

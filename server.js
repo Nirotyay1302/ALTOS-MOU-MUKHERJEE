@@ -3,7 +3,6 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY || "");
 const { initialize, run, get, all } = require("./database");
 
 
@@ -43,12 +42,6 @@ app.get("/api/products", async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Unable to load products." });
   }
-});
-
-app.get("/api/config", (req, res) => {
-  res.json({
-    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || ""
-  });
 });
 
 // Helper to save base64 image
@@ -346,17 +339,6 @@ app.post("/api/orders", async (req, res) => {
       ))
     );
 
-    if (process.env.STRIPE_SECRET_KEY && paymentMethod === "card") {
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(total * 100),
-        currency: "inr",
-        metadata: { orderId }
-      });
-      return res.json({ orderId, clientSecret: paymentIntent.client_secret, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY });
-    }
-
-
-
     res.json({ orderId, success: true });
   } catch (error) {
     console.error(error);
@@ -394,29 +376,6 @@ app.delete("/api/orders/:id", requireAdminAuth, async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Unable to delete order." });
   }
-});
-
-app.post("/api/payments/confirm", async (req, res) => {
-  const { orderId, paymentIntentId } = req.body;
-  if (!orderId || !paymentIntentId) {
-    return res.status(400).json({ error: "Missing payment confirmation data." });
-  }
-
-  try {
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    if (paymentIntent.status === "succeeded") {
-      await run("UPDATE orders SET status = ? WHERE id = ?", ["paid", orderId]);
-      return res.json({ success: true });
-    }
-    res.status(400).json({ error: "Payment not completed." });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Unable to confirm payment." });
-  }
-});
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // Admin import endpoint: re-parse product-list.html and import products
@@ -526,6 +485,10 @@ app.post('/api/admin/import-products', requireAdminAuth, async (req, res) => {
     console.error('Import failed', err);
     res.status(500).json({ error: 'Import failed', detail: err.message });
   }
+});
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(port, () => {

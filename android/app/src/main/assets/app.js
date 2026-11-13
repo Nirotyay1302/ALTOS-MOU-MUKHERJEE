@@ -26,6 +26,31 @@ const storageKeys = {
 
 const API_BASE = (window.location.protocol === "file:" || window.location.href.startsWith("file:")) ? "https://altos-mou-mukherjee.onrender.com" : "";
 
+function applyDeviceDetection() {
+    const ua = navigator.userAgent.toLowerCase();
+    const width = window.innerWidth;
+
+    document.body.classList.remove('device-mobile', 'device-tablet', 'device-desktop', 'is-android-app');
+
+    if (window.location.protocol === "file:" || window.location.href.startsWith("file:")) {
+        document.body.classList.add('is-android-app');
+    }
+
+    if (width <= 576 || (/mobile|android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua) && width <= 768)) {
+        document.body.classList.add('device-mobile');
+    } else if (width <= 1024 || /ipad|tablet/i.test(ua)) {
+        document.body.classList.add('device-tablet');
+    } else {
+        document.body.classList.add('device-desktop');
+    }
+}
+
+function getImageUrl(url) {
+    if (!url || typeof url !== 'string' || url.trim() === "") return "";
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
+    return API_BASE + (url.startsWith('/') ? url : '/' + url);
+}
+
 let products = [];
 let adminOrders = [];
 
@@ -99,7 +124,7 @@ function renderProducts() {
         return `<article class="product-card">
             <div class="product-card-image-container" style="background: ${hasImage ? 'var(--surface-strong)' : gradient};">
                 ${hasImage ?
-                    `<img src="${product.image_url}" alt="${product.name}" class="product-card-image" loading="lazy" />` :
+                    `<img src="${getImageUrl(product.image_url)}" alt="${product.name}" class="product-card-image" loading="lazy" />` :
                     `<div class="product-card-image-placeholder">${product.name.substring(0, 2).toUpperCase()}</div>`
                 }
             </div>
@@ -224,7 +249,7 @@ function renderCartPage() {
         return `<div class="cart-item">
             <div class="cart-item-image-container" style="background: ${hasImage ? '#ffffff' : gradient};">
                 ${hasImage ?
-                    `<img src="${item.image_url}" alt="${item.name}" class="cart-item-image" />` :
+                    `<img src="${getImageUrl(item.image_url)}" alt="${item.name}" class="cart-item-image" />` :
                     `<div class="cart-item-image-placeholder">${item.name.substring(0, 2).toUpperCase()}</div>`
                 }
             </div>
@@ -304,7 +329,7 @@ function renderCheckoutPage() {
         return `<div class="checkout-item-card">
             <div class="cart-item-image-container" style="background: ${hasImage ? '#ffffff' : gradient}; flex-shrink: 0;">
                 ${hasImage ?
-                    `<img src="${item.image_url}" alt="${item.name}" class="cart-item-image" />` :
+                    `<img src="${getImageUrl(item.image_url)}" alt="${item.name}" class="cart-item-image" />` :
                     `<div class="cart-item-image-placeholder">${item.name.substring(0, 2).toUpperCase()}</div>`
                 }
             </div>
@@ -320,50 +345,13 @@ function renderCheckoutPage() {
     const total = checkoutItems.reduce((sum, item) => sum + item.mrp * item.quantity, 0);
     totalNode.textContent = total.toFixed(2);
 
-    // Dynamic UI logic for Card / UPI / COD choice & Stripe
     const radios = form.querySelectorAll("input[name='paymentMethod']");
     const codFeeRow = document.getElementById("cod-fee-row");
     const upiSection = document.getElementById("upi-section");
-    const cardSection = document.getElementById("card-element-section");
     const upiTxInput = document.getElementById("upi-transaction-id");
 
-    let stripe = null;
-    let elements = null;
-    let cardElement = null;
-
-    fetch(API_BASE + "/api/config")
-        .then(res => res.json())
-        .then(config => {
-            if (config.stripePublishableKey && window.Stripe) {
-                stripe = Stripe(config.stripePublishableKey);
-                elements = stripe.elements();
-                cardElement = elements.create("card");
-                if (document.getElementById("card-element")) {
-                    cardElement.mount("#card-element");
-                }
-                cardElement.on("change", event => {
-                    const displayError = document.getElementById("card-errors");
-                    if (displayError) {
-                        displayError.textContent = event.error ? event.error.message : "";
-                    }
-                });
-            } else {
-                if (cardSection) cardSection.style.display = "none";
-            }
-        })
-        .catch(err => {
-            console.error("Failed to load Stripe config", err);
-        });
-
     function updatePaymentUI(selectedMethod, skipConfirm = false) {
-        if (selectedMethod === "card") {
-            if (cardSection) cardSection.style.display = "block";
-            if (upiSection) upiSection.style.display = "none";
-            if (codFeeRow) codFeeRow.style.display = "none";
-            totalNode.textContent = total.toFixed(2);
-            if (upiTxInput) upiTxInput.removeAttribute("required");
-        } else if (selectedMethod === "upi") {
-            if (cardSection) cardSection.style.display = "none";
+        if (selectedMethod === "upi") {
             if (upiSection) upiSection.style.display = "block";
             if (codFeeRow) codFeeRow.style.display = "none";
             totalNode.textContent = total.toFixed(2);
@@ -374,15 +362,14 @@ function renderCheckoutPage() {
                 confirmed = confirm("Are you sure you want to select Cash on Delivery? There is an extra ₹30.00 convenience fee for COD orders.");
             }
             if (confirmed) {
-                if (cardSection) cardSection.style.display = "none";
                 if (upiSection) upiSection.style.display = "none";
                 if (codFeeRow) codFeeRow.style.display = "flex";
                 totalNode.textContent = (total + 30).toFixed(2);
-                if (upiTxInput)upiTxInput.removeAttribute("required");
+                if (upiTxInput) upiTxInput.removeAttribute("required");
                 const codRadio = form.querySelector("input[name='paymentMethod'][value='cod']");
                 if (codRadio) codRadio.checked = true;
             } else {
-                const defaultRadio = form.querySelector("input[name='paymentMethod'][value='card']") || form.querySelector("input[name='paymentMethod'][value='upi']");
+                const defaultRadio = form.querySelector("input[name='paymentMethod'][value='upi']");
                 if (defaultRadio) {
                     defaultRadio.checked = true;
                     updatePaymentUI(defaultRadio.value, true);
@@ -398,15 +385,15 @@ function renderCheckoutPage() {
     });
 
     const checkedRadio = form.querySelector("input[name='paymentMethod']:checked");
-    updatePaymentUI(checkedRadio ? checkedRadio.value : "card", true);
+    updatePaymentUI(checkedRadio ? checkedRadio.value : "upi", true);
 
     form.addEventListener("submit", event => {
         event.preventDefault();
-        submitCheckout(checkoutItems, total, stripe, cardElement);
+        submitCheckout(checkoutItems, total);
     });
 }
 
-async function submitCheckout(items, baseTotal, stripe = null, cardElement = null) {
+async function submitCheckout(items, baseTotal) {
     const name = document.getElementById("customer-name").value.trim();
     const email = document.getElementById("customer-email").value.trim();
     const phone = document.getElementById("customer-phone").value.trim();
@@ -433,60 +420,88 @@ async function submitCheckout(items, baseTotal, stripe = null, cardElement = nul
         finalTotal = baseTotal + 30;
     }
 
-    try {
-        const response = await fetch(API_BASE + "/api/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                customerName: name,
-                customerEmail: email,
-                customerPhone: phone,
-                customerAddress: address,
-                paymentMethod: method,
-                items: items.map(item => ({
-                    ...item,
-                    price: item.mrp
-                })),
-                total: finalTotal,
-                transactionId: transactionId
-            })
-        });
-        const payload = await response.json();
-        if (!response.ok) {
-            throw new Error(payload.error || "Order creation failed.");
-        }
+    const orderId = `ORD-${Date.now()}`;
+    const newOrder = {
+        id: orderId,
+        createdAt: new Date().toISOString(),
+        customerName: name,
+        customerEmail: email,
+        customerPhone: phone,
+        customerAddress: address,
+        paymentMethod: method,
+        total: finalTotal,
+        status: "pending",
+        transactionId: transactionId,
+        items: items.map(item => ({
+            name: item.name,
+            unit: item.unit,
+            price: item.mrp,
+            quantity: item.quantity
+        }))
+    };
 
-        if (method === "card" && payload.clientSecret && stripe && cardElement) {
-            const result = await stripe.confirmCardPayment(payload.clientSecret, {
-                payment_method: {
-                    card: cardElement,
-                    billing_details: {
-                        name: name,
-                        email: email,
-                        phone: phone,
-                        address: { line1: address }
-                    }
-                }
-            });
-            if (result.error) {
-                throw new Error(result.error.message);
-            }
-            if (result.paymentIntent && result.paymentIntent.status === "succeeded") {
-                await fetch(API_BASE + "/api/payments/confirm", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        orderId: payload.orderId,
-                        paymentIntentId: result.paymentIntent.id
-                    })
-                });
-            }
+    const defaultSampleOrders = [
+        {
+            id: "ORD-1715012345678",
+            createdAt: "2026-07-06T10:30:00.000Z",
+            customerName: "Rahul Sharma",
+            customerEmail: "rahul@example.com",
+            customerPhone: "9876543210",
+            customerAddress: "12 Park Street, Kolkata, West Bengal 700016",
+            paymentMethod: "upi",
+            total: 878.00,
+            status: "completed",
+            transactionId: "405612345678",
+            items: [
+                { name: "Vitamin C Tablets", unit: "60 tabs", price: 350.00, quantity: 2 },
+                { name: "Ore Amla Juice", unit: "500 ml", price: 178.00, quantity: 1 }
+            ]
+        },
+        {
+            id: "ORD-1715098765432",
+            createdAt: "2026-07-05T14:15:00.000Z",
+            customerName: "Priya Singh",
+            customerEmail: "priya@example.com",
+            customerPhone: "9123456789",
+            customerAddress: "45 MG Road, Mumbai, Maharashtra 400001",
+            paymentMethod: "cod",
+            total: 625.00,
+            status: "pending",
+            transactionId: null,
+            items: [
+                { name: "Onion Black Seed Hair Oil", unit: "100 ml", price: 295.00, quantity: 2 }
+            ]
+        },
+        {
+            id: "ORD-1715123456789",
+            createdAt: "2026-07-04T09:45:00.000Z",
+            customerName: "Amit Kumar",
+            customerEmail: "amit@example.com",
+            customerPhone: "9988776655",
+            customerAddress: "78 Sector 18, Noida, Uttar Pradesh 201301",
+            paymentMethod: "upi",
+            total: 1250.00,
+            status: "completed",
+            transactionId: "405698765432",
+            items: [
+                { name: "Altos Noni Juice", unit: "1000 ml", price: 850.00, quantity: 1 },
+                { name: "Spirulina Tablets", unit: "100 tabs", price: 400.00, quantity: 1 }
+            ]
         }
+    ];
 
-        finalizeOrder(payload.orderId, method === "upi" || method === "card", phone, items, finalTotal, method, transactionId);
-    } catch (error) {
-        alert(error.message);
-    }
+    const localRaw = localStorage.getItem("altos_local_orders");
+    let localOrders = localRaw ? JSON.parse(localRaw) : defaultSampleOrders;
+    localOrders.unshift(newOrder);
+    localStorage.setItem("altos_local_orders", JSON.stringify(localOrders));
+
+    fetch(API_BASE + "/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newOrder)
+    }).catch(err => console.log("Background order sync failed", err));
+
+    finalizeOrder(orderId, method === "upi", phone, items, finalTotal, method, transactionId);
 }
 
 function finalizeOrder(orderId, paid = false, customerPhone = '', items = [], total = 0, method = 'upi', transactionId = null) {
@@ -513,14 +528,81 @@ function clearAdminToken() {
 async function fetchAdminOrders() {
     const token = getAdminToken();
     if (!token) throw new Error("Not authenticated as admin. Please log in.");
-    const response = await fetch(API_BASE + "/api/orders", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || "Unable to load orders.");
+
+    let serverOrders = [];
+    try {
+        const response = await fetch(API_BASE + "/api/orders", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+            serverOrders = await response.json();
+        }
+    } catch (e) {
+        console.warn("Server orders fetch failed, using local storage");
     }
-    return await response.json();
+
+    const defaultSampleOrders = [
+        {
+            id: "ORD-1715012345678",
+            createdAt: "2026-07-06T10:30:00.000Z",
+            customerName: "Rahul Sharma",
+            customerEmail: "rahul@example.com",
+            customerPhone: "9876543210",
+            customerAddress: "12 Park Street, Kolkata, West Bengal 700016",
+            paymentMethod: "upi",
+            total: 878.00,
+            status: "completed",
+            transactionId: "405612345678",
+            items: [
+                { name: "Vitamin C Tablets", unit: "60 tabs", price: 350.00, quantity: 2 },
+                { name: "Ore Amla Juice", unit: "500 ml", price: 178.00, quantity: 1 }
+            ]
+        },
+        {
+            id: "ORD-1715098765432",
+            createdAt: "2026-07-05T14:15:00.000Z",
+            customerName: "Priya Singh",
+            customerEmail: "priya@example.com",
+            customerPhone: "9123456789",
+            customerAddress: "45 MG Road, Mumbai, Maharashtra 400001",
+            paymentMethod: "cod",
+            total: 625.00,
+            status: "pending",
+            transactionId: null,
+            items: [
+                { name: "Onion Black Seed Hair Oil", unit: "100 ml", price: 295.00, quantity: 2 }
+            ]
+        },
+        {
+            id: "ORD-1715123456789",
+            createdAt: "2026-07-04T09:45:00.000Z",
+            customerName: "Amit Kumar",
+            customerEmail: "amit@example.com",
+            customerPhone: "9988776655",
+            customerAddress: "78 Sector 18, Noida, Uttar Pradesh 201301",
+            paymentMethod: "upi",
+            total: 1250.00,
+            status: "completed",
+            transactionId: "405698765432",
+            items: [
+                { name: "Altos Noni Juice", unit: "1000 ml", price: 850.00, quantity: 1 },
+                { name: "Spirulina Tablets", unit: "100 tabs", price: 400.00, quantity: 1 }
+            ]
+        }
+    ];
+
+    const localRaw = localStorage.getItem("altos_local_orders");
+    let localOrders = localRaw ? JSON.parse(localRaw) : defaultSampleOrders;
+    if (!localRaw) {
+        localStorage.setItem("altos_local_orders", JSON.stringify(defaultSampleOrders));
+    }
+
+    const orderMap = new Map();
+    [...localOrders, ...serverOrders].forEach(o => {
+        orderMap.set(o.id, o);
+    });
+
+    return Array.from(orderMap.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 async function fetchAdminProducts() {
@@ -621,24 +703,28 @@ function sendAdminWhatsApp(orderId) {
 }
 window.sendAdminWhatsApp = sendAdminWhatsApp;
 
-// Edit functionality removed: order editing UI and handlers were deleted.
-
 async function deleteOrder(orderId) {
     if (!confirm("Are you sure you want to delete this order?")) return;
-    const token = getAdminToken();
-    if (!token) { alert('Admin not logged in. Please login to delete orders.'); return; }
-    try {
-        const response = await fetch(API_BASE + `/api/orders/${orderId}`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!response.ok) {
-            throw new Error("Unable to delete order.");
-        }
-        renderAdminPage();
-    } catch (error) {
-        alert(error.message);
+
+    const localRaw = localStorage.getItem("altos_local_orders");
+    if (localRaw) {
+        let localOrders = JSON.parse(localRaw);
+        localOrders = localOrders.filter(o => o.id !== orderId);
+        localStorage.setItem("altos_local_orders", JSON.stringify(localOrders));
     }
+
+    const token = getAdminToken();
+    if (token) {
+        try {
+            await fetch(API_BASE + `/api/orders/${orderId}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        } catch (e) {
+            console.log("Server order delete failed", e);
+        }
+    }
+    renderAdminPage();
 }
 
 async function downloadReceipt(orderId) {
@@ -681,7 +767,7 @@ function renderProductList(listElement, productsData) {
         return `<div class="admin-product-row">
             <div class="cart-item-image-container" style="background: ${hasImage ? '#ffffff' : gradient}; flex-shrink: 0;">
                 ${hasImage ?
-                    `<img src="${product.image_url}" alt="${product.name}" class="cart-item-image" />` :
+                    `<img src="${getImageUrl(product.image_url)}" alt="${product.name}" class="cart-item-image" />` :
                     `<div class="cart-item-image-placeholder">${product.name.substring(0, 2).toUpperCase()}</div>`
                 }
             </div>
@@ -742,11 +828,9 @@ function openProductForm(product = null) {
     }
     formElement.elements.image_url.value = product?.image_url || "";
 
-    // Clear file input
     const fileInput = document.getElementById("product-image-file");
     if (fileInput) fileInput.value = "";
 
-    // Set preview
     const previewContainer = document.getElementById("image-preview-container");
     const previewImg = document.getElementById("product-image-preview");
     if (previewContainer && previewImg) {
@@ -759,7 +843,6 @@ function openProductForm(product = null) {
         }
     }
 
-    // Preserve existing database columns not exposed in the editor UI
     formElement.dataset.bv = product?.bv || 0;
     formElement.dataset.pv = product?.pv || 0;
     formElement.dataset.imageUrl = product?.image_url || "";
@@ -940,7 +1023,6 @@ async function renderAdminPage() {
     document.getElementById("cancel-product")?.addEventListener("click", closeProductForm);
     document.getElementById("product-edit-form")?.addEventListener("submit", handleProductSubmit);
 
-    // Setup file preview and remove button listeners
     const fileInput = document.getElementById("product-image-file");
     const imageUrlInput = document.getElementById("product-image-url");
     const previewContainer = document.getElementById("image-preview-container");
@@ -980,8 +1062,6 @@ async function renderAdminPage() {
         if (previewImg) previewImg.src = "";
     });
 
-    // Order edit UI removed; no event listeners bound for order editing.
-
     try {
         adminOrders = await fetchAdminOrders();
         updateAdminSummary(adminOrders);
@@ -1004,7 +1084,7 @@ function injectWhatsAppButton() {
     btn.setAttribute("aria-label", "Contact us on WhatsApp");
     btn.innerHTML = `
         <span class="whatsapp-tooltip">Chat on WhatsApp</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="30" height="30" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="28" height="28" fill="currentColor">
             <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L32 503l138.2-36.2c32.5 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-82 21.5 21.9-80-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7 .9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
         </svg>
     `;
@@ -1080,7 +1160,11 @@ function showLandingPopup() {
     }, 100);
 }
 
+window.addEventListener("resize", applyDeviceDetection);
+
 window.addEventListener("DOMContentLoaded", async () => {
+    applyDeviceDetection();
+
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('payment_success')) {
         const orderId = urlParams.get('orderId');
@@ -1097,12 +1181,11 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     updateCartBadge();
     injectWhatsAppButton();
+
     if (document.body.id === "page-home") {
         await loadProducts();
         initializeFilters();
 
-        // Handle search links from educational blog posts
-        const urlParams = new URLSearchParams(window.location.search);
         const searchQuery = urlParams.get('search');
         if (searchQuery) {
             const searchInput = document.getElementById("search-input");
